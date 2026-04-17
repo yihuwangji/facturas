@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>🇪🇸 西班牙 IVA 税务管理 · Claude AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f1f5f9;color:#1e293b}
+.app{display:flex;min-height:100vh}
+.sidebar{width:230px;background:#0f172a;color:white;padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar .logo{padding:16px 24px;font-size:1.1rem;font-weight:800;letter-spacing:-0.02em}
+.sidebar .logo span{font-size:.7rem;font-weight:400;color:#94a3b8;display:block;margin-top:2px}
+.nav-item{padding:11px 24px;cursor:pointer;color:#94a3b8;font-size:.88rem;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{color:#e2e8f0;background:#1e293b}
+.nav-item.active{color:white;background:#1e3a8a;border-left-color:#3b82f6}
+.sidebar .key-box{margin:20px 16px;padding:14px;background:#1e293b;border-radius:10px}
+.sidebar .key-box label{font-size:.7rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.sidebar .key-box input{width:100%;margin-top:6px;padding:8px 10px;border-radius:6px;border:1px solid #334155;background:#0f172a;color:white;font-size:.82rem}
+.sidebar .key-box .hint{font-size:.65rem;color:#475569;margin-top:6px}
+.main{flex:1;padding:28px;max-width:1100px}
+h1{font-size:1.5rem;font-weight:800;margin-bottom:20px}
+.card{background:white;border-radius:14px;padding:22px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:1rem;font-weight:700;margin-bottom:14px;color:#334155}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.kpi{text-align:center;padding:22px 16px;border-radius:12px;background:white;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.kpi .num{font-size:1.7rem;font-weight:800;font-family:'SF Mono',monospace}
+.kpi .tag{font-size:.68rem;color:#64748b;text-transform:uppercase;margin-top:3px;font-weight:600}
+.c-blue{color:#2563eb}.c-red{color:#dc2626}.c-green{color:#16a34a}.c-gray{color:#64748b}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 12px;text-align:left;font-size:.84rem;border-bottom:1px solid #f1f5f9}
+th{color:#64748b;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.03em}
+.r{text-align:right;font-family:'SF Mono',monospace;font-size:.82rem}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700}
+.b21{background:#fef2f2;color:#b91c1c}.b10{background:#fffbeb;color:#b45309}
+.b4{background:#eff6ff;color:#1d4ed8}.b0{background:#f8fafc;color:#64748b}
+.b-sale{background:#f0fdf4;color:#15803d}.b-buy{background:#eff6ff;color:#1d4ed8}
+.btn{padding:9px 16px;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .15s}
+.btn:hover{opacity:.85}
+.btn-p{background:#1e40af;color:white}.btn-g{background:#15803d;color:white}
+.btn-d{background:#991b1b;color:white}.btn-o{background:#f59e0b;color:white}
+.form-row{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:.68rem;color:#64748b;font-weight:600}
+input,select{padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:.85rem;outline:none}
+input:focus,select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.upload-zone{border:2px dashed #cbd5e1;border-radius:14px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfc}
+.upload-zone:hover{border-color:#3b82f6;background:#eff6ff}
+.upload-zone .icon{font-size:2.5rem;margin-bottom:8px}
+.upload-zone .text{color:#64748b;font-size:.9rem}
+.result-item{padding:14px 16px;border-radius:10px;margin:8px 0;font-size:.88rem}
+.result-ok{background:#f0fdf4;border-left:4px solid #16a34a;color:#15803d}
+.result-err{background:#fef2f2;border-left:4px solid #dc2626;color:#b91c1c}
+.result-wait{background:#eff6ff;border-left:4px solid #3b82f6;color:#1d4ed8}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:999}
+.modal-mask.open{display:flex}
+.modal{background:white;border-radius:16px;padding:26px;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{margin-bottom:16px;font-size:1.1rem}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.toast-box{position:fixed;bottom:24px;right:24px;z-index:9999}
+.toast{background:#0f172a;color:white;padding:10px 18px;border-radius:8px;font-size:.85rem;opacity:0;transform:translateY(10px);transition:all .3s}
+.toast.show{opacity:1;transform:translateY(0)}
+.empty{text-align:center;color:#94a3b8;padding:36px;font-size:.88rem}
+.qbar-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.qbar{text-align:center}
+.qbar .label{font-size:.72rem;font-weight:700;color:#64748b;margin-bottom:6px}
+.qbar .bar{background:#f1f5f9;border-radius:6px;height:70px;display:flex;align-items:flex-end;padding:3px}
+.qbar .fill{width:100%;background:linear-gradient(180deg,#3b82f6,#1e40af);border-radius:4px;transition:height .4s}
+.qbar .val{font-family:'SF Mono',monospace;font-size:.75rem;color:#64748b;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+ <div class="logo">🇪🇸 IVA 税务管理<span>Claude AI · 2026</span></div>
+ <div class="nav-item active" onclick="go(0)">📊 总览</div>
+ <div class="nav-item" onclick="go(1)">🤖 AI识别</div>
+ <div class="nav-item" onclick="go(2)">🧾 发票列表</div>
+ <div class="nav-item" onclick="go(3)">🧮 计算器</div>
+ <div class="nav-item" onclick="go(4)">💾 备份</div>
+ <div class="key-box">
+  <label>🤖 AI 引擎</label>
+  <div style="color:#e2e8f0;font-size:.8rem;margin-top:6px;font-weight:600">Claude Sonnet</div>
+  <div class="hint">由 Anthropic API 驱动</div>
+ </div>
+</div>
+<div class="main">
+
+<!-- 总览 -->
+<div id="p0">
+ <h1>📊 总览仪表盘</h1>
+ <div class="kpi-row" id="kpis"></div>
+ <div class="card"><h2>📈 季度分布</h2><div class="qbar-row" id="qbar"></div></div>
+ <div class="card"><h2>📋 最近发票</h2>
+  <table><thead><tr><th>发票号</th><th>日期</th><th>供应商</th><th>类型</th><th>税率</th><th class="r">税前</th><th class="r">含税</th></tr></thead>
+  <tbody id="recentTb"></tbody></table>
+ </div>
+</div>
+
+<!-- AI识别 -->
+<div id="p1" style="display:none">
+ <h1>🤖 AI发票识别</h1>
+ <p style="color:#64748b;margin-bottom:16px">上传西班牙发票（图片/PDF），Claude AI 自动提取信息并入库</p>
+ <div class="upload-zone" onclick="document.getElementById('fUp').click()">
+  <div class="icon">📤</div>
+  <div class="text">点击上传发票 / 拖放文件到此处</div>
+  <div style="font-size:.72rem;color:#94a3b8;margin-top:4px">支持 JPG PNG PDF · 可多选</div>
+ </div>
+ <input type="file" id="fUp" accept="image/*,.pdf" multiple style="display:none" onchange="recognize(this.files);this.value=''">
+ <div id="aiLog" style="margin-top:14px"></div>
+</div>
+
+<!-- 发票列表 -->
+<div id="p2" style="display:none">
+ <h1>🧾 发票列表</h1>
+ <div class="form-row">
+  <button class="btn btn-g" onclick="openModal()">➕ 手动添加</button>
+  <button class="btn btn-d" onclick="clearAll()">🗑 清空</button>
+ </div>
+ <div class="card" style="padding:0;overflow-x:auto">
+  <table><thead><tr><th>发票号</th><th>日期</th><th>供应商</th><th>类型</th><th>税率</th><th class="r">税前</th><th class="r">IVA</th><th class="r">含税</th><th></th></tr></thead>
+  <tbody id="listTb"></tbody></table>
+ </div>
+</div>
+
+<!-- 计算器 -->
+<div id="p3" style="display:none">
+ <h1>🧮 IVA 计算器</h1>
+ <div class="card">
+  <h2>正算：税前 → 含税</h2>
+  <div class="form-row">
+   <div class="fg"><label>税前金额 (€)</label><input id="fwdBase" oninput="fwdCalc()"></div>
+   <div class="fg"><label>IVA税率</label><select id="fwdRate" onchange="fwdCalc()"><option value="21">21% General</option><option value="10">10% Reducido</option><option value="4">4% Superreducido</option><option value="0">0% Exento</option></select></div>
+  </div>
+  <div style="display:flex;gap:24px;font-family:'SF Mono',monospace;font-size:1.15rem;font-weight:700;margin-top:8px">
+   <div>税前 <span id="fwdB" class="c-blue">—</span></div>
+   <div>IVA <span id="fwdI" class="c-red">—</span></div>
+   <div>含税 <span id="fwdT" class="c-green">—</span></div>
+  </div>
+ </div>
+ <div class="card">
+  <h2>反算：含税 → 税前</h2>
+  <div class="form-row">
+   <div class="fg"><label>含税金额 (€)</label><input id="revTotal" oninput="revCalc()"></input></div>
+   <div class="fg"><label>IVA税率</label><select id="revRate" onchange="revCalc()"><option value="21">21%</option><option value="10">10%</option><option value="4">4%</option><option value="0">0%</option></select></div>
+  </div>
+  <div style="display:flex;gap:24px;font-family:'SF Mono',monospace;font-size:1.15rem;font-weight:700;margin-top:8px">
+   <div>税前 <span id="revB" class="c-blue">—</span></div>
+   <div>IVA <span id="revI" class="c-red">—</span></div>
+   <div>含税 <span id="revT" class="c-green">—</span></div>
+  </div>
+ </div>
+</div>
+
+<!-- 备份 -->
+<div id="p4" style="display:none">
+ <h1>💾 数据备份</h1>
+ <div class="card">
+  <div class="form-row">
+   <button class="btn btn-p" onclick="expJSON()">📦 导出 JSON</button>
+   <button class="btn btn-g" onclick="expCSV()">📊 导出 CSV</button>
+   <label class="btn btn-o" style="cursor:pointer">📥 导入 JSON<input type="file" accept=".json" style="display:none" onchange="impJSON(event)"></label>
+  </div>
+  <p style="font-size:.78rem;color:#94a3b8;margin-top:8px">⚠️ 导入会覆盖当前所有数据</p>
+ </div>
+ <div class="card">
+  <h2>ℹ️ 系统信息</h2>
+  <div style="color:#64748b;line-height:2.2;font-size:.88rem">
+   <div>存储键: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">iva_invoices_pro</code></div>
+   <div>发票数: <strong id="sCount">0</strong></div>
+   <div>IVA总额: <strong id="sIva">—</strong></div>
+   <div>含税总额: <strong id="sAll">—</strong></div>
+  </div>
+ </div>
+</div>
+
+</div>
+</div>
+
+<!-- 添加弹窗 -->
+<div class="modal-mask" id="addMask">
+<div class="modal">
+ <h3>➕ 添加发票</h3>
+ <div class="form-row">
+  <div class="fg"><label>供应商</label><input id="aName"></div>
+  <div class="fg"><label>发票号</label><input id="aNum"></div>
+ </div>
+ <div class="form-row">
+  <div class="fg"><label>日期</label><input id="aDate" type="date" value="2026-04-17"></div>
+  <div class="fg"><label>类型</label><select id="aType"><option value="purchase">采购</option><option value="sale">销售</option></select></div>
+ </div>
+ <div class="form-row">
+  <div class="fg"><label>税前 (€)</label><input id="aBase" type="number" step="0.01"></div>
+  <div class="fg"><label>IVA税率</label><select id="aRate"><option value="21">21%</option><option value="10">10%</option><option value="4">4%</option><option value="0">0%</option></select></div>
+ </div>
+ <div class="fg" style="margin:8px 0"><label>备注</label><input id="aNote" style="width:100%"></div>
+ <div class="modal-foot">
+  <button class="btn btn-d" onclick="closeModal()">取消</button>
+  <button class="btn btn-g" onclick="doAdd()">✅ 添加</button>
+ </div>
+</div>
+</div>
+
+<div class="toast-box"><div class="toast" id="toast"></div></div>
+
+<script>
+const SK='iva_invoices_pro',YR=2026;
+let inv=[];
+
+const INIT=[{"id": 1, "num": "FVV26006242", "name": "CARAVAN FRAGANCIAS S.L.", "date": "2026-03-26", "base": 448.0, "rate": "21", "type": "purchase", "note": "CARAVAN Eau de Parfum香水 13款男/女香"}, {"id": 2, "num": "2601653", "name": "HERSIGRIM S.L.", "date": "2026-03-27", "base": 755.13, "rate": "21", "type": "purchase", "note": "遮阳网MALLA+椅垫COJIN 21箱"}, {"id": 3, "num": "Servigas-2026Q1", "name": "SERVIGAS S XXI S.A.", "date": "2026-03-31", "base": 576.19, "rate": "21", "type": "purchase", "note": "电费 28/02-31/03/2026 20kW"}, {"id": 4, "num": "2718375273", "name": "Coca-Cola Europacific Partners", "date": "2026-03-30", "base": 3453.18, "rate": "21", "type": "purchase", "note": "Monster大单 8款+Fanta+可口可乐 3页"}, {"id": 5, "num": "2718425146", "name": "Coca-Cola Europacific Partners", "date": "2026-03-31", "base": 0.5, "rate": "21", "type": "purchase", "note": "Fanta芬达拉环促销+环保费"}, {"id": 6, "num": "2718425149", "name": "Coca-Cola Europacific Partners", "date": "2026-03-31", "base": 478.47, "rate": "21", "type": "purchase", "note": "可口可乐PET系列饮料"}, {"id": 7, "num": "FA26000940", "name": "NINGBO RAYDAN ESPAÑA S.L.", "date": "2026-04-01", "base": 216.0, "rate": "21", "type": "purchase", "note": "折叠桌 11件"}, {"id": 8, "num": "23Z/324074", "name": "ALMACENES BEMALU S.A.", "date": "2026-04-01", "base": 597.33, "rate": "21", "type": "purchase", "note": "ORION+RAID杀虫剂 5款"}, {"id": 9, "num": "Y26002069", "name": "LOGI TRADE IMPORT EXPORT SL", "date": "2026-04-03", "base": 2150.66, "rate": "21", "type": "purchase", "note": "五金工具大单 汽车配件+角铁+胶带+手工具 7页"}, {"id": 10, "num": "2026/A/2940", "name": "Telecomunicaciones Calderona SL", "date": "2026-04-10", "base": 32.97, "rate": "21", "type": "purchase", "note": "FIBRA PROPIA 300 互联网服务"}, {"id": 11, "num": "2719520669", "name": "Coca-Cola Europacific Partners", "date": "2026-04-14", "base": 352.63, "rate": "21", "type": "purchase", "note": "Monster能量饮料 504罐 + FUZE GTM"}, {"id": 12, "num": "9205028", "name": "PRINCESALISIMO S.L.U.", "date": "2026-04-14", "base": 873.03, "rate": "21", "type": "purchase", "note": "啤酒+软饮+Monster混合批发 2页"}, {"id": 13, "num": "9205030", "name": "PRINCESALISIMO S.L.U.", "date": "2026-04-14", "base": 11.52, "rate": "10", "type": "purchase", "note": "VALTORRE矿泉水 72瓶"}, {"id": 14, "num": "9205033", "name": "PRINCESALISIMO S.L.U.", "date": "2026-04-14", "base": 149.04, "rate": "10", "type": "purchase", "note": "NESCAFE咖啡+LANDESSA奶+FINI零食"}, {"id": 15, "num": "9205214", "name": "PRINCESALISIMO S.L.U.", "date": "2026-04-15", "base": -13.95, "rate": "10", "type": "purchase", "note": "贷项通知单 - COMPLET狗粮破损退货"}];
+
+const $=id=>document.getElementById(id);
+const fmt=n=>(n??0).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const qOf=d=>{const m=new Date(d).getMonth()+1;return m<=3?1:m<=6?2:m<=9?3:4};
+const save=()=>localStorage.setItem(SK,JSON.stringify(inv));
+const load=()=>{
+ try{
+  const stored=localStorage.getItem(SK);
+  if(stored){
+   inv=JSON.parse(stored);
+   if(inv.length===0&&INIT.length>0){inv=JSON.parse(JSON.stringify(INIT));save()}
+  } else {inv=JSON.parse(JSON.stringify(INIT));save()}
+ }catch{
+  inv=JSON.parse(JSON.stringify(INIT));save()
+ }
+};
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
+function dl(name,ct,tp){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ct],{type:tp}));a.download=name;a.click()}
+
+// 导航
+function go(n){
+ for(let i=0;i<5;i++){const e=$('p'+i);if(e)e.style.display=i===n?'block':'none'}
+ document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active',i===n));
+ if(n===0)dash();if(n===2)list();if(n===4)sysInfo();
+}
+
+// 仪表盘
+function dash(){
+ load();
+ const y=inv.filter(i=>new Date(i.date).getFullYear()===YR);
+ const tb=y.reduce((s,i)=>s+(parseFloat(i.base)||0),0);
+ const ti=y.reduce((s,i)=>s+(parseFloat(i.base)||0)*parseInt(i.rate)/100,0);
+ $('kpis').innerHTML=`
+  <div class="kpi"><div class="num">${y.length}</div><div class="tag">发票数量</div></div>
+  <div class="kpi"><div class="num c-blue">${fmt(tb)}</div><div class="tag">税前总额</div></div>
+  <div class="kpi"><div class="num c-red">${fmt(ti)}</div><div class="tag">IVA税额</div></div>
+  <div class="kpi"><div class="num c-green">${fmt(tb+ti)}</div><div class="tag">含税总额</div></div>`;
+
+ let qh='';
+ for(let q=1;q<=4;q++){
+  const qb=y.filter(i=>qOf(i.date)===q).reduce((s,i)=>s+(parseFloat(i.base)||0),0);
+  const allQbs=[1,2,3,4].map(q2=>y.filter(i=>qOf(i.date)===q2).reduce((s,i)=>s+(parseFloat(i.base)||0),0));
+  const mx=Math.max(1,...allQbs);
+  const h=Math.round(qb/mx*100);
+  qh+=`<div class="qbar"><div class="label">Q${q}</div><div class="bar"><div class="fill" style="height:${h}%"></div></div><div class="val">${fmt(qb)}</div></div>`;
+ }
+ $('qbar').innerHTML=qh;
+
+ const rc=inv.slice(-8).reverse();
+ const tb2=$('recentTb');
+ if(!rc.length){tb2.innerHTML='<tr><td colspan="7" class="empty">暂无发票</td></tr>';return}
+ tb2.innerHTML=rc.map(i=>{const b=parseFloat(i.base)||0,r=parseInt(i.rate)||21;return`<tr>
+  <td>${i.num}</td><td>${i.date}</td><td>${i.name}</td>
+  <td><span class="badge b-${i.type}">${i.type==='sale'?'销售':'采购'}</span></td>
+  <td><span class="badge b${i.rate}">${i.rate}%</span></td>
+  <td class="r">${fmt(b)}</td><td class="r c-green">${fmt(b*(1+r/100))}</td></tr>`}).join('');
+}
+
+// 发票列表
+function list(){
+ load();
+ const tb=$('listTb');
+ if(!inv.length){tb.innerHTML='<tr><td colspan="9" class="empty">暂无发票</td></tr>';return}
+ tb.innerHTML=[...inv].reverse().map((i,ri)=>{
+  const b=parseFloat(i.base)||0,r=parseInt(i.rate)||21,idx=inv.length-1-ri;
+  return`<tr>
+  <td>${i.num}</td><td>${i.date}</td><td>${i.name}</td>
+  <td><span class="badge b-${i.type}">${i.type==='sale'?'销售':'采购'}</span></td>
+  <td><span class="badge b${i.rate}">${i.rate}%</span></td>
+  <td class="r" style="color:${b<0?'#b91c1c':''}">${fmt(b)}</td>
+  <td class="r c-red">${fmt(b*r/100)}</td><td class="r c-green">${fmt(b*(1+r/100))}</td>
+  <td><button class="btn btn-d" style="padding:3px 8px;font-size:.72rem" onclick="delInv(${idx})">🗑</button></td></tr>`}).join('');
+}
+
+// CRUD
+function openModal(){$('addMask').classList.add('open')}
+function closeModal(){$('addMask').classList.remove('open')}
+function doAdd(){
+ const name=$('aName').value.trim(),base=parseFloat($('aBase').value),date=$('aDate').value;
+ if(!name||isNaN(base)||!date){toast('填写完整');return}
+ inv.push({id:Date.now(),num:$('aNum').value.trim()||`${YR}-${String(inv.length+1).padStart(4,'0')}`,
+  name,date,base,rate:$('aRate').value,type:$('aType').value,note:$('aNote').value.trim(),source:'manual'});
+ save();['aName','aNum','aBase','aNote'].forEach(id=>$(id).value='');closeModal();dash();toast(`✅ ${name} ${fmt(base)}`);
+}
+function delInv(i){if(!confirm('删除此发票？'))return;inv.splice(i,1);save();list();toast('已删除')}
+function clearAll(){if(!confirm('清空全部？不可恢复！'))return;inv=[];save();list();toast('已清空')}
+
+// AI识别（Claude API + inlineData + 自动入库）
+function toB64(f){return new Promise(r=>{const rd=new FileReader();rd.onload=()=>r(rd.result.split(',')[1]);rd.readAsDataURL(f)})}
+
+const CLAUDE_PROMPT=`你是西班牙发票OCR专家。请从文件中提取以下信息，只返回纯JSON，不要任何markdown、解释或多余文字。
+
+返回格式：
+{
+  "numero": "发票号",
+  "nombre": "供应商全称",
+  "fecha": "YYYY-MM-DD",
+  "base": 税前金额数字,
+  "tipo": "purchase"或"sale",
+  "nota": "产品摘要（中文，30字内）",
+  "tasa": 21或10或4或0
+}
+
+注意：
+- 采购发票 tipo=purchase，销售发票 tipo=sale
+- base 只写数字，不要欧元符号
+- fecha 必须 YYYY-MM-DD 格式
+- 如果不是发票，返回 {"error": true}`;
+
+async function recognize(files){
+ const log=$('aiLog');log.innerHTML='';
+ load();
+
+ for(const f of files){
+  // 添加等待状态
+  const waitId='w'+Date.now();
+  log.innerHTML+=`<div class="result-item result-wait" id="${waitId}">⏳ 正在识别: ${f.name}...</div>`;
+  try{
+   const b64=await toB64(f);
+   const isPDF=f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf');
+   const mime=isPDF?'application/pdf':(f.type||'image/jpeg');
+
+   // 构建消息内容：PDF用document类型，图片用image类型
+   const mediaContent=isPDF
+    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
+    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
+
+   const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+     model:'claude-sonnet-4-20250514',
+     max_tokens:1000,
+     messages:[{role:'user',content:[mediaContent,{type:'text',text:CLAUDE_PROMPT}]}]
+    })
+   });
+
+   const data=await res.json();
+   if(data.error){
+    document.getElementById(waitId).outerHTML=`<div class="result-item result-err">❌ API错误: ${f.name} — ${data.error.message}</div>`;
+    continue;
+   }
+
+   let raw=(data.content?.[0]?.text||'').replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+   const m=raw.match(/\{[\s\S]*\}/);
+   if(!m){
+    document.getElementById(waitId).outerHTML=`<div class="result-item result-err">❌ 解析失败: ${f.name} — 模型返回: ${raw.slice(0,120)}</div>`;
+    continue;
+   }
+   let j;
+   try{j=JSON.parse(m[0])}catch(pe){
+    document.getElementById(waitId).outerHTML=`<div class="result-item result-err">❌ JSON解析错误: ${f.name} — ${pe.message}</div>`;
+    continue;
+   }
+   if(j.error){
+    document.getElementById(waitId).outerHTML=`<div class="result-item result-err">❌ 不是发票: ${f.name}</div>`;
+    continue;
+   }
+   const item={id:Date.now(),num:j.numero||f.name,name:j.nombre||'未知',date:j.fecha||new Date().toISOString().slice(0,10),base:parseFloat(j.base)||0,rate:String(j.tasa||21),type:j.tipo||'purchase',note:j.nota||'',source:'claude'};
+   inv.push(item);save();
+   document.getElementById(waitId).outerHTML=`<div class="result-item result-ok">✅ ${item.name} — ${fmt(item.base)} — ${item.num}</div>`;
+  }catch(e){
+   document.getElementById(waitId).outerHTML=`<div class="result-item result-err">❌ 错误: ${f.name} — ${e.message||e}</div>`;
+  }
+ }
+ dash();
+}
+
+// 计算器
+function fwdCalc(){const b=parseFloat($('fwdBase').value)||0,r=parseInt($('fwdRate').value)||21;$('fwdB').textContent=fmt(b);$('fwdI').textContent=fmt(b*r/100);$('fwdT').textContent=fmt(b*(1+r/100))}
+function revCalc(){const t=parseFloat($('revTotal').value)||0,r=parseInt($('revRate').value)||21;const b=t/(1+r/100);$('revB').textContent=fmt(b);$('revI').textContent=fmt(b*r/100);$('revT').textContent=fmt(t)}
+
+// 备份
+function expJSON(){const d=new Date().toISOString().slice(0,10);dl(`iva_${d}.json`,'application/json',JSON.stringify(inv,null,2))}
+function expCSV(){
+ const rows=[['发票号','日期','供应商','类型','税率','税前','IVA','含税']];
+ inv.forEach(i=>{const b=parseFloat(i.base)||0,r=parseInt(i.rate)||21;rows.push([i.num,i.date,i.name,i.type,i.rate,b,b*r/100,b*(1+r/100)])},);
+ dl('iva_invoices.csv','text/csv',rows.map(r=>r.join(',')).join('\n'));
+}
+function impJSON(e){
+ const f=e.target.files[0];if(!f)return;
+ const rd=new FileReader();rd.onload=()=>{try{inv=JSON.parse(rd.result);save();dash();toast('导入成功 '+inv.length+' 张')||alert('导入成功')}catch{toast('JSON格式错误')}};rd.readAsText(f);
+}
+function sysInfo(){
+ load();
+ const tb=inv.reduce((s,i)=>s+(parseFloat(i.base)||0),0);
+ const ti=inv.reduce((s,i)=>s+(parseFloat(i.base)||0)*parseInt(i.rate||21)/100,0);
+ $('sCount').textContent=inv.length;
+ $('sIva').textContent=fmt(ti);
+ $('sAll').textContent=fmt(tb+ti);
+}
+
+window.onload=()=>{if(INIT.length>0){inv=JSON.parse(JSON.stringify(INIT));save()}else{load()}dash()}
+</script>
+</body></html>
