@@ -165,7 +165,7 @@ if(DB.invoices.length===0){
     try{DB.invoices=JSON.parse(seedStr);}catch(e){}
   }
 }
-DB.invoices=[];
+// // DB.invoices=[]; // DISABLED - was clearing seed data! // DISABLED - was clearing seed data!
 // 尝试迁移旧数据
 var old=localStorage.getItem('ivaSystem_v2')||localStorage.getItem('ivaData');
 if(old&&DB.invoices.length===0){try{var o=JSON.parse(old);if(o.invoices&&o.invoices.length){DB=o;save();notify('已迁移旧版数据 '+o.invoices.length+' 条','success');}}catch(e){}}
