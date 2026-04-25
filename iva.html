@@ -15,6 +15,16 @@
 .import-hint-box h3{font-size:20px;font-weight:700;margin-bottom:10px;color:#333}
 .import-hint-box p{font-size:14px;color:#666;margin-bottom:20px;line-height:1.6}
 .import-hint-box .hint-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* Supplier Autocomplete Styles */
+.supplier-autocomplete{position:relative}
+.supplier-dropdown{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;max-height:240px;overflow-y:auto;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.12);margin-top:2px}
+.supplier-dropdown.show{display:block}
+.supplier-item{padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s}
+.supplier-item:hover,.supplier-item.active{background:#f0f0ff}
+.supplier-item .s-name{font-size:13px;color:#333;font-weight:500}
+.supplier-item .s-nif{font-size:11px;color:#999;margin-left:8px;white-space:nowrap}
+.supplier-item .s-rate{font-size:10px;color:#7c3aed;background:#f0f0ff;padding:1px 6px;border-radius:4px;margin-left:4px}
 </style></head><body><div class="header"><div><h1>🇪🇸 西班牙IVA税务发票管理系统</h1><div class="subtitle">Gestión de Facturas · 收付款管理 · 税务申报</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><select id="yearFilter" onchange="refreshAll()" style="padding:8px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.2);color:white;font-weight:600;font-size:14px;"></select><span id="saveStatusBadge" class="header-saved">✅ 已保存</span><button class="btn btn-secondary btn-sm" onclick="exportData()">💾 导出备份</button><label class="btn btn-info btn-sm" style="cursor:pointer">📂 导入数据<input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none"></label></div></div>
 <div class="save-bar" id="saveBar"><span>⚠️ 有未导出的更改，建议导出备份到文件，防止数据丢失</span><div class="save-bar-btns"><button class="btn-savebar save" onclick="exportDataAndDismiss()">💾 立即导出备份</button><button class="btn-savebar dismiss" onclick="dismissSaveBar()">稍后再说</button></div></div>
 <div class="import-hint-modal" id="importHintModal"><div class="import-hint-box"><div style="font-size:48px;margin-bottom:12px">📂</div><h3>加载上次的数据？</h3><p>检测到本地缓存中有 <strong id="hintCount">0</strong> 条发票记录。<br>如果你有导出的 <code>.json</code> 备份文件，建议先导入以确保数据最新。</p><div class="hint-btns"><label class="btn btn-primary" style="cursor:pointer">📂 导入备份文件<input type="file" accept=".json" onchange="importDataFromHint(event)" style="display:none"></label><button class="btn btn-success" onclick="closeImportHint()">✅ 使用当前数据</button></div></div></div><div class="tabs"><button class="tab-btn active" onclick="switchTab('dashboard')">📊 仪表板</button><button class="tab-btn" onclick="switchTab('income')">📥 收入发票</button><button class="tab-btn" onclick="switchTab('expense')">📤 支出发票</button><button class="tab-btn" onclick="switchTab('payments')">💳 收付款</button><button class="tab-btn" onclick="switchTab('report')">📋 季度申报</button></div>
@@ -775,4 +785,71 @@ window.addEventListener('beforeunload',function(e){
   var badge=document.getElementById('saveStatusBadge');
   if(badge){badge.textContent='✅ 已保存(本地)';}
 })();
-</script></body></html>
+</script>
+var SUPPLIER_DB=[{name:"PRINCESALISIMO, SLU",nif:"B46350534",ivaRate:10},{name:"FRIT RAVICH, SL",nif:"B17023995",ivaRate:10},{name:"JOYVI, SL",nif:"B46150934",ivaRate:10},{name:"WEI HANG, SL",nif:"B98508492",ivaRate:10},{name:"YOUCHENG 2024, SL",nif:"B19464627",ivaRate:21},{name:"ALJUAN, SL",nif:"B53048997",ivaRate:21},{name:"RUSHER SC",nif:"J75996124",ivaRate:21},{name:"JOSE CAZALLA",nif:"52635137M",ivaRate:21},{name:"SUPER RAYO, SL",nif:"B40565582",ivaRate:21},{name:"COCA-COLA",nif:"",ivaRate:21},{name:"MEGA CAXTON, SL",nif:"B98818602",ivaRate:21},{name:"EUROLANDIA TRADE, SL",nif:"B23849730",ivaRate:21},{name:"SERVIGAS S XXI, SA",nif:"A99262610",ivaRate:0},{name:"GLUCK & SWEET, SLU",nif:"B02354413",ivaRate:10},{name:"HAOONLINE, SL",nif:"B56516859",ivaRate:21},{name:"PARIS CITY 2010, SL",nif:"B98227481",ivaRate:21},{name:"MARVIMUNDO, SL",nif:"B30469399",ivaRate:21},{name:"DISGRUP MENAJE, SL",nif:"B97754386",ivaRate:21},{name:"ELEKTRO 3, SCCL",nif:"F43389675",ivaRate:10},{name:"DIRESNACK, SL",nif:"B56570609",ivaRate:10},{name:"TOYS MAR IBERICA, SL",nif:"B40549768",ivaRate:21},{name:"MARBUENO S.L.",nif:"B98639255",ivaRate:21},{name:"CEGECO & ALAR, SL",nif:"B92526318",ivaRate:21},{name:"YIERWO, SL",nif:"B98767783",ivaRate:21},{name:"YUE QIU, SL",nif:"B98667207",ivaRate:21},{name:"SAYTIEN, SL",nif:"B44724102",ivaRate:10},{name:"AGUSTIN CUBERO, SL",nif:"B50501790",ivaRate:10},{name:"CARAVAN PARFUM",nif:"",ivaRate:21},{name:"HERSIGRIM",nif:"",ivaRate:21},{name:"SERVIGAS",nif:"",ivaRate:21},{name:"EUROFAMILIA",nif:"",ivaRate:21},{name:"BEMALU",nif:"",ivaRate:21},{name:"LOGI TRADE",nif:"",ivaRate:21},{name:"TELECOM CALDERONA",nif:"",ivaRate:21},{name:"GOYVAL VINAGRES",nif:"",ivaRate:21},{name:"NINGBO RAYDAN ESPAÑA S.L.",nif:"B98639255",ivaRate:21},{name:"Ximo Electrodoméstics (J.Pedrós Bigorra)",nif:"B98639222",ivaRate:21},{name:"DIVINS DIRESA, S.L.",nif:"B-97898546",ivaRate:10},{name:"JOSE RAMON MAESTRE LILLO",nif:"B98639255",ivaRate:21},{name:"VETUSPLAS, SL",nif:"B33539297",ivaRate:21},{name:"CASALMA, SL",nif:"B46121000",ivaRate:21},{name:"PLASTIHOGAR DPT, SL",nif:"B63175822",ivaRate:21},{name:"GNETIC GLASS, SL",nif:"B09539693",ivaRate:21},{name:"GREAT PLASTIC, SL",nif:"B53168365",ivaRate:21},{name:"BODEGAS DINASTIA, SL",nif:"B13598214",ivaRate:4},{name:"LUCEFAM BASICS, SLU",nif:"B75276428",ivaRate:21},{name:"H&J TEXHOGAR, SLU",nif:"B98702434",ivaRate:21},{name:"ZMECO PRODUCTS, SL",nif:"B55456628",ivaRate:21},{name:"QUALIANZA S.INT DIST,SLU",nif:"B09547167",ivaRate:21},{name:"MEDIA MARKT SATURN S.A.",nif:"A82037292",ivaRate:21}];
+/* Supplier Autocomplete Logic */
+function initSupplierAutocomplete(){
+  var inp=document.getElementById('ex_supplier');
+  var nifInp=document.getElementById('ex_nif');
+  var ivaInp=document.getElementById('ex_iva');
+  if(!inp)return;
+  // Wrap input in container
+  var wrapper=document.createElement('div');
+  wrapper.className='supplier-autocomplete';
+  wrapper.style.position='relative';
+  inp.parentNode.insertBefore(wrapper,inp);
+  wrapper.appendChild(inp);
+  // Create dropdown
+  var dd=document.createElement('div');
+  dd.className='supplier-dropdown';
+  dd.id='supplierDropdown';
+  wrapper.appendChild(dd);
+  var activeIdx=-1;
+  var filteredItems=[];
+  function renderDropdown(query){
+    dd.innerHTML='';
+    activeIdx=-1;
+    if(!query||query.length<1){dd.classList.remove('show');return;}
+    var q=query.toUpperCase();
+    filteredItems=SUPPLIER_DB.filter(function(s){
+      return s.name.toUpperCase().indexOf(q)>=0||(s.nif&&s.nif.toUpperCase().indexOf(q)>=0);
+    });
+    if(filteredItems.length===0){dd.classList.remove('show');return;}
+    filteredItems.forEach(function(s,i){
+      var item=document.createElement('div');
+      item.className='supplier-item';
+      item.innerHTML='<span class="s-name">'+s.name+'</span><span class="s-nif">'+(s.nif||'')+'</span>'+(s.ivaRate?'<span class="s-rate">'+s.ivaRate+'%</span>':'');
+      item.addEventListener('mousedown',function(e){
+        e.preventDefault();
+        selectSupplier(s);
+      });
+      dd.appendChild(item);
+    });
+    dd.classList.add('show');
+  }
+  function selectSupplier(s){
+    inp.value=s.name;
+    if(nifInp&&!nifInp.value)nifInp.value=s.nif||'';
+    if(ivaInp&&s.ivaRate)ivaInp.value=s.ivaRate;
+    dd.classList.remove('show');
+    inp.focus();
+  }
+  inp.addEventListener('input',function(){renderDropdown(inp.value);});
+  inp.addEventListener('focus',function(){if(inp.value.length>=1)renderDropdown(inp.value);});
+  inp.addEventListener('blur',function(){setTimeout(function(){dd.classList.remove('show');},150);});
+  inp.addEventListener('keydown',function(e){
+    var items=dd.querySelectorAll('.supplier-item');
+    if(!dd.classList.contains('show'))return;
+    if(e.key==='ArrowDown'){e.preventDefault();activeIdx=Math.min(activeIdx+1,items.length-1);highlightItem(items);}
+    else if(e.key==='ArrowUp'){e.preventDefault();activeIdx=Math.max(activeIdx-1,0);highlightItem(items);}
+    else if(e.key==='Enter'&&activeIdx>=0){e.preventDefault();if(filteredItems[activeIdx])selectSupplier(filteredItems[activeIdx]);}
+    else if(e.key==='Escape'){dd.classList.remove('show');}
+  });
+  function highlightItem(items){
+    items.forEach(function(it,i){it.classList.toggle('active',i===activeIdx);});
+    if(items[activeIdx])items[activeIdx].scrollIntoView({block:'nearest'});
+  }
+}
+document.addEventListener('DOMContentLoaded',initSupplierAutocomplete);
+
+</body></html>
