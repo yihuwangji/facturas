@@ -341,13 +341,39 @@ function load() {
       DB.version = stored.version;
       console.log('Loaded from localStorage: ' + DB.invoices.length + ' invoices (v' + DB.version + ')');
     } else {
-      // Different versions - merge: start with seed, add any new invoices from localStorage
-      var maxSeedId = Math.max.apply(null, seed.invoices.map(function(i){return i.id;}));
-      var newFromLocal = stored.invoices.filter(function(i){return i.id > maxSeedId;});
-      DB.invoices = seed.invoices.concat(newFromLocal);
+      // Different versions - SMART MERGE:
+      // 1. Start with seed as base
+      // 2. For existing invoices (by id), keep user's edits (payDate, payMethod, etc.)
+      // 3. Add any new invoices from localStorage that seed doesn't have
+      var seedMap = {};
+      seed.invoices.forEach(function(i){ seedMap[i.id] = i; });
+      var localMap = {};
+      stored.invoices.forEach(function(i){ localMap[i.id] = i; });
+      
+      // Start with all seed invoices
+      DB.invoices = seed.invoices.map(function(si) {
+        var li = localMap[si.id];
+        if (li) {
+          // Invoice exists in both - use seed data but preserve user edits
+          var merged = Object.assign({}, si);
+          // Fields that user can change: keep from localStorage
+          ['payDate','payMethod','bankAmt','cashAmt','notes'].forEach(function(f){
+            if (li[f] !== undefined && li[f] !== null && li[f] !== '') merged[f] = li[f];
+          });
+          if (li.payDate) merged.payDate = li.payDate;
+          return merged;
+        }
+        return si;
+      });
+      
+      // Add any invoices in localStorage that are NOT in seed (user-added)
+      stored.invoices.forEach(function(li) {
+        if (!seedMap[li.id]) DB.invoices.push(li);
+      });
+      
       DB.nextId = Math.max(seed.nextId, stored.nextId);
       DB.version = seed.version;
-      console.log('Merged: ' + seed.invoices.length + ' seed + ' + newFromLocal.length + ' new = ' + DB.invoices.length);
+      console.log('Smart merged: ' + DB.invoices.length + ' invoices (seed ' + seed.invoices.length + ' + user-added ' + (DB.invoices.length - seed.invoices.length) + ')');
       save(); // Save merged data
     }
   } else {
