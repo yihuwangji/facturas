@@ -86,6 +86,7 @@ tr:hover td{background:#faf5ff}
 .report-table td{padding:8px 10px;border:1px solid #e5e7eb;text-align:right}
 .report-table td:first-child{text-align:left;font-weight:600}
 .report-table tr.total td{background:#f5f3ff;font-weight:700;border-top:2px solid #7c3aed}
+table tr.total td{background:#f0ecff;font-weight:700;border-top:2px solid #7c3aed;padding:8px 6px}
 .save-bar{display:none;background:#fef3c7;padding:10px 20px;text-align:center;font-size:13px;font-weight:600;color:#92400e}
 .save-bar.show{display:flex;justify-content:center;align-items:center;gap:12px}
 .import-hint-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
@@ -214,6 +215,7 @@ tr:hover td{background:#faf5ff}
       <div class="form-group" id="in_cash_wrap" style="display:none"><label>现金金额</label><input type="number" id="in_cash_amt" step="0.01"></div>
       <div class="form-group"><label>付款日期</label><input type="date" id="in_pay_date"></div>
       <div class="form-group"><label>备注</label><input type="text" id="in_notes" placeholder="备注"></div>
+      <div class="form-group"><label>📎 原始发票文件</label><input type="text" id="in_pdf" placeholder="PDF文件路径或链接"></div>
     </div>
     <button class="btn btn-success" onclick="addInvoice('income')">💾 保存收入发票</button>
   </div>
@@ -243,6 +245,7 @@ tr:hover td{background:#faf5ff}
       <div class="form-group"><label>付款日期</label><input type="date" id="ex_pay_date"></div>
       <div class="form-group"><label>分类</label><select id="ex_category"><option value="">--</option><option value="bebidas">Bebidas 饮料</option><option value="alimentacion">Alimentación 食品</option><option value="material">Material 物料</option><option value="limpieza">Limpieza 清洁</option><option value="servicios">Servicios 服务</option><option value="mantenimiento">Mantenimiento 维护</option><option value="otros">Otros 其他</option></select></div>
       <div class="form-group"><label>备注</label><input type="text" id="ex_notes" placeholder="备注"></div>
+      <div class="form-group"><label>📎 原始发票文件</label><input type="text" id="ex_pdf" placeholder="PDF文件路径或链接"></div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-danger" onclick="addInvoice('expense')">💾 保存支出</button>
@@ -522,6 +525,7 @@ function addInvoice(type) {
     cashAmt: (pm==='cash'||pm==='both') ? (parseFloat(document.getElementById(isIncome?'in_cash_amt':'ex_cash_amt').value)||0) : 0,
     payDate: document.getElementById(isIncome?'in_pay_date':'ex_pay_date').value,
     notes: document.getElementById(isIncome?'in_notes':'ex_notes').value,
+    pdfFile: document.getElementById(isIncome?'in_pdf':'ex_pdf').value.trim(),
     category: !isIncome ? document.getElementById('ex_category').value : '',
     createdAt: new Date().toISOString()
   };
@@ -536,7 +540,7 @@ function addInvoice(type) {
 
 function clearForm(type) {
   var prefix = type === 'income' ? 'in_' : 'ex_';
-  ['num','date','due','client','supplier','nif','desc','base','notes'].forEach(function(f){
+  ['num','date','due','client','supplier','nif','desc','base','notes','pdf'].forEach(function(f){
     var el = document.getElementById(prefix + (type==='income' && f==='client'?'client': type!=='income' && f==='supplier'?'supplier':f));
     if(el) el.value = '';
   });
@@ -752,18 +756,28 @@ function renderIncome() {
   var list = filterInvoices(DB.invoices.filter(function(i){return i.type==='income'||i.type==='sale';}));
   document.getElementById('incomeCount').textContent = list.length + ' 张';
   list.sort(function(a,b){return b.date.localeCompare(a.date);});
-  document.getElementById('incomeList').innerHTML = '<table><tr><th>类型</th><th>发票号</th><th>客户</th><th>Base</th><th>IVA%</th><th>IVA</th><th>总额</th><th>日期</th><th>付款</th><th>操作</th></tr>' +
-    list.map(function(i){return '<tr><td>'+typeBadge(i.type)+'</td><td>'+i.num+'</td><td>'+(i.client||'')+'</td><td>'+fmt(i.base)+'</td><td>'+i.ivaRate+'%</td><td>'+fmt(i.ivaAmt)+'</td><td><b>'+fmt(i.total)+'</b></td><td>'+fmtDate(i.date)+'</td><td>'+payBadge(i)+'</td><td><button class="btn btn-success btn-xs" onclick="openPayModal('+i.id+')">💰</button> <button class="btn btn-danger btn-xs" onclick="delInvoice('+i.id+')">🗑️</button></td></tr>';}).join('') +
-    '</table>';
+  var totalBase=0, totalIva=0, totalAmt=0;
+  var rows = list.map(function(i){
+    totalBase+=i.base; totalIva+=i.ivaAmt; totalAmt+=i.total;
+    var pdfBtn = i.pdfFile ? ' <a href="'+i.pdfFile+'" target="_blank" class="btn btn-xs" style="background:#6366f1;color:#fff;text-decoration:none;padding:2px 6px;font-size:11px" title="查看原始发票">📎</a>' : '';
+    return '<tr><td>'+typeBadge(i.type)+'</td><td>'+i.num+'</td><td>'+(i.client||'')+'</td><td>'+fmt(i.base)+'</td><td>'+i.ivaRate+'%</td><td>'+fmt(i.ivaAmt)+'</td><td><b>'+fmt(i.total)+'</b></td><td>'+fmtDate(i.date)+'</td><td>'+payBadge(i)+'</td><td><button class="btn btn-success btn-xs" onclick="openPayModal('+i.id+')">💰</button>'+pdfBtn+' <button class="btn btn-danger btn-xs" onclick="delInvoice('+i.id+')">🗑️</button></td></tr>';
+  }).join('');
+  var totalRow = list.length ? '<tr class="total"><td colspan="3"><b>📊 合计 ('+list.length+'张)</b></td><td><b>'+fmt(totalBase)+'</b></td><td></td><td><b>'+fmt(totalIva)+'</b></td><td><b style="color:#7c3aed">'+fmt(totalAmt)+'</b></td><td colspan="3"></td></tr>' : '';
+  document.getElementById('incomeList').innerHTML = '<table><tr><th>类型</th><th>发票号</th><th>客户</th><th>Base</th><th>IVA%</th><th>IVA</th><th>总额</th><th>日期</th><th>付款</th><th>操作</th></tr>' + rows + totalRow + '</table>';
 }
 
 function renderExpense() {
   var list = filterInvoices(DB.invoices.filter(function(i){return i.type==='expense'||i.type==='abono';}));
   document.getElementById('expenseCount').textContent = list.length + ' 张';
   list.sort(function(a,b){return b.date.localeCompare(a.date);});
-  document.getElementById('expenseList').innerHTML = '<table><tr><th>类型</th><th>发票号</th><th>供应商</th><th>NIF</th><th>Base</th><th>IVA%</th><th>IVA</th><th>总额</th><th>日期</th><th>付款</th><th>操作</th></tr>' +
-    list.map(function(i){return '<tr><td>'+typeBadge(i.type)+'</td><td>'+i.num+'</td><td>'+(i.supplier||'')+'</td><td>'+(i.nif||'')+'</td><td>'+fmt(i.base)+'</td><td>'+i.ivaRate+'%</td><td>'+fmt(i.ivaAmt)+'</td><td><b>'+fmt(i.total)+'</b></td><td>'+fmtDate(i.date)+'</td><td>'+payBadge(i)+'</td><td><button class="btn btn-success btn-xs" onclick="openPayModal('+i.id+')">💰</button> <button class="btn btn-danger btn-xs" onclick="delInvoice('+i.id+')">🗑️</button></td></tr>';}).join('') +
-    '</table>';
+  var totalBase=0, totalIva=0, totalAmt=0;
+  var rows = list.map(function(i){
+    totalBase+=i.base; totalIva+=i.ivaAmt; totalAmt+=i.total;
+    var pdfBtn = i.pdfFile ? ' <a href="'+i.pdfFile+'" target="_blank" class="btn btn-xs" style="background:#6366f1;color:#fff;text-decoration:none;padding:2px 6px;font-size:11px" title="查看原始发票">📎</a>' : '';
+    return '<tr><td>'+typeBadge(i.type)+'</td><td>'+i.num+'</td><td>'+(i.supplier||'')+'</td><td>'+(i.nif||'')+'</td><td>'+fmt(i.base)+'</td><td>'+i.ivaRate+'%</td><td>'+fmt(i.ivaAmt)+'</td><td><b>'+fmt(i.total)+'</b></td><td>'+fmtDate(i.date)+'</td><td>'+payBadge(i)+'</td><td><button class="btn btn-success btn-xs" onclick="openPayModal('+i.id+')">💰</button>'+pdfBtn+' <button class="btn btn-danger btn-xs" onclick="delInvoice('+i.id+')">🗑️</button></td></tr>';
+  }).join('');
+  var totalRow = list.length ? '<tr class="total"><td colspan="4"><b>📊 合计 ('+list.length+'张)</b></td><td><b>'+fmt(totalBase)+'</b></td><td></td><td><b>'+fmt(totalIva)+'</b></td><td><b style="color:#dc2626">'+fmt(totalAmt)+'</b></td><td colspan="3"></td></tr>' : '';
+  document.getElementById('expenseList').innerHTML = '<table><tr><th>类型</th><th>发票号</th><th>供应商</th><th>NIF</th><th>Base</th><th>IVA%</th><th>IVA</th><th>总额</th><th>日期</th><th>付款</th><th>操作</th></tr>' + rows + totalRow + '</table>';
 }
 
 function renderPayments() {
@@ -779,8 +793,11 @@ function renderPayments() {
   document.getElementById('payPaid').textContent = fmt(paid);
   
   var list = all.filter(function(i){return i.payDate;}).sort(function(a,b){return b.payDate.localeCompare(a.payDate);});
-  document.getElementById('paymentList').innerHTML = '<table><tr><th>日期</th><th>类型</th><th>发票号</th><th>供应商/客户</th><th>金额</th><th>方式</th></tr>' +
-    list.map(function(i){return '<tr><td>'+fmtDate(i.payDate)+'</td><td>'+typeBadge(i.type)+'</td><td>'+i.num+'</td><td>'+(i.supplier||i.client||'')+'</td><td>'+fmt(i.total)+'</td><td>'+(i.payMethod||'')+'</td></tr>';}).join('') +
+  document.getElementById('paymentList').innerHTML = '<table><tr><th>日期</th><th>类型</th><th>发票号</th><th>供应商/客户</th><th>金额</th><th>方式</th><th>原始发票</th></tr>' +
+    list.map(function(i){
+      var pdfLink = i.pdfFile ? '<a href="'+i.pdfFile+'" target="_blank" style="color:#6366f1">📎 查看</a>' : '';
+      return '<tr><td>'+fmtDate(i.payDate)+'</td><td>'+typeBadge(i.type)+'</td><td>'+i.num+'</td><td>'+(i.supplier||i.client||'')+'</td><td>'+fmt(i.total)+'</td><td>'+(i.payMethod||'')+'</td><td>'+pdfLink+'</td></tr>';
+    }).join('') +
     '</table>';
 }
 
