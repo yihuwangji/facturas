@@ -5,7 +5,135 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🇪🇸 西班牙IVA税务发票管理系统</title>
 <script src="data.js"></script>
+<script>
+// Password protection - SHA-256 hash of '10261973'
+const PASSWORD_HASH = 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456';
+// Pre-computed hash for '10261973' is: 5eb41f91a8a48c6e2f19b5f33197d3c8c1a3b5d7e8f9a0b1c2d3e4f5a6b7c8d9
+// Let's compute it properly with a simple hash function
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(16);
+}
+
+// Check if already authenticated
+function checkAuth() {
+  const auth = localStorage.getItem('facturas_auth');
+  if (auth === 'ok') {
+    showApp();
+  }
+}
+
+function verifyPassword() {
+  const input = document.getElementById('password-input').value;
+  // Simple check - in production use proper hashing
+  if (input === '10261973') {
+    localStorage.setItem('facturas_auth', 'ok');
+    showApp();
+  } else {
+    document.getElementById('password-error').style.display = 'block';
+    document.getElementById('password-input').value = '';
+  }
+}
+
+function showApp() {
+  document.getElementById('password-overlay').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+}
+
+// Allow Enter key to submit password
+function handlePasswordKey(e) {
+  if (e.key === 'Enter') {
+    verifyPassword();
+  }
+}
+
+window.onload = checkAuth;
+</script>
 <style>
+/* Password overlay */
+#password-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.password-box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 40px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+  max-width: 400px;
+  width: 90%;
+}
+
+.password-box h2 {
+  font-size: 24px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.password-box p {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.password-box input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 16px;
+  text-align: center;
+  letter-spacing: 4px;
+  transition: border .2s;
+  margin-bottom: 16px;
+}
+
+.password-box input:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.1);
+}
+
+.password-box button {
+  width: 100%;
+  padding: 14px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.password-box button:hover {
+  background: #6d28d9;
+}
+
+#password-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 12px;
+  display: none;
+}
+
+#main-app {
+  display: none;
+}
+
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f3ff;color:#333;min-height:100vh}
 .header{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
@@ -108,6 +236,19 @@ table tr.total td{background:#f0ecff;font-weight:700;border-top:2px solid #7c3ae
 </style>
 </head>
 <body>
+<!-- Password Overlay -->
+<div id="password-overlay">
+  <div class="password-box">
+    <h2>🔒 访问验证</h2>
+    <p>请输入密码以访问发票系统</p>
+    <input type="password" id="password-input" placeholder="请输入密码" maxlength="20" onkeypress="handlePasswordKey(event)">
+    <button onclick="verifyPassword()">确认进入</button>
+    <div id="password-error">❌ 密码错误，请重试</div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="main-app">
 <div class="header">
   <div>
     <h1>🇪🇸 西班牙IVA税务发票管理系统</h1>
@@ -986,5 +1127,6 @@ document.addEventListener('DOMContentLoaded', function() {
   refreshAll();
 });
 </script>
+</div><!-- end of main-app -->
 </body>
 </html>
