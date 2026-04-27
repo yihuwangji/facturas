@@ -1,4 +1,4 @@
-// Generated 2026-04-27 18:00
+// Generated 2026-04-27 18:15
 var SEED_DATA = {
   "version": "2026-04-27-v4",
   "nextId": 338,
@@ -450,7 +450,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "客户EUROFAMILIA",
       "category": "",
-      "createdAt": "2026-04-17T12:00:00.000Z"
+      "createdAt": "2026-04-17T12:00:00.000Z",
+      "pdfFile": "pdfs/SUPER_RAYO_2600002326_894.47EUR.jpg"
     },
     {
       "id": 19,
@@ -474,7 +475,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "打火机/气体",
       "category": "",
-      "createdAt": "2026-04-18T12:00:00.000Z"
+      "createdAt": "2026-04-18T12:00:00.000Z",
+      "pdfFile": "pdfs/YOUCHENG_20260000953_124.27EUR.jpg"
     },
     {
       "id": 20,
@@ -498,7 +500,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "塑料夹/圆珠笔",
       "category": "",
-      "createdAt": "2026-04-18T12:00:00.000Z"
+      "createdAt": "2026-04-18T12:00:00.000Z",
+      "pdfFile": "pdfs/YOUCHENG_20260000554_27.25EUR.jpg"
     },
     {
       "id": 21,
@@ -522,7 +525,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "CERVEZAS VOLL-DAMM+ESTRELLA GALICIA+AGUA 6lineas/1019unidades CLIENTE:EUROFAMILIA HORTA SUR",
       "category": "",
-      "createdAt": "2026-04-14T12:00:00.000Z"
+      "createdAt": "2026-04-14T12:00:00.000Z",
+      "pdfFile": "pdfs/PRINCESALISIMO_9205104_2222.59EUR.jpg"
     },
     {
       "id": 22,
@@ -7579,7 +7583,8 @@ var SEED_DATA = {
       "payDate": "2026-04-07",
       "notes": "",
       "category": "",
-      "createdAt": "2026-04-22T12:00:00.000Z"
+      "createdAt": "2026-04-22T12:00:00.000Z",
+      "pdfFile": "pdfs/FritRavich_0321213401_2026-04-22.jpg"
     },
     {
       "id": 316,
@@ -7603,7 +7608,8 @@ var SEED_DATA = {
       "payDate": "2026-04-22",
       "notes": "",
       "category": "",
-      "createdAt": "2026-04-22T12:00:00.000Z"
+      "createdAt": "2026-04-22T12:00:00.000Z",
+      "pdfFile": "pdfs/FritRavich_0321319404_2026-04-22.jpg"
     },
     {
       "id": 317,
@@ -7633,6 +7639,7 @@ var SEED_DATA = {
       "id": 318,
       "type": "expense",
       "number": "26042665",
+      "pdfFile": "pdfs/JOYVI_26042665_2026-04-23.jpg",
       "date": "2026-04-23",
       "vendor": "JOYVI (LEKKERLAND)",
       "nif": "B98639255",
@@ -7714,7 +7721,8 @@ var SEED_DATA = {
       "payDate": "2026-04-23",
       "notes": "Apple Mac Mini M4 SHT0XK1JD2Z",
       "category": "",
-      "createdAt": "2026-04-23T12:00:00.000Z"
+      "createdAt": "2026-04-23T12:00:00.000Z",
+      "pdfFile": "pdfs/MEDIAMARKT_E235-60830892_2026-04-23.jpg"
     },
     {
       "id": 322,
