@@ -1,6 +1,6 @@
 // Generated 2026-04-27 10:12
 var SEED_DATA = {
-  "version": "2026-04-27-v2",
+  "version": "2026-04-27-v3",
   "nextId": 331,
   "invoices": [
     {
@@ -7776,6 +7776,7 @@ var SEED_DATA = {
       "payMethod": "transferencia",
       "notes": "CASHPATRI 24/04",
       "type": "expense",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205809.pdf",
       "client": "",
       "irpfRate": 0,
       "irpfAmt": 0,
@@ -7800,6 +7801,7 @@ var SEED_DATA = {
       "payMethod": "transferencia",
       "notes": "CASHPATRI 24/04",
       "type": "expense",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205810.pdf",
       "client": "",
       "irpfRate": 0,
       "irpfAmt": 0,
@@ -7824,6 +7826,7 @@ var SEED_DATA = {
       "payMethod": "transferencia",
       "notes": "CASHPATRI 24/04",
       "type": "expense",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205812.pdf",
       "client": "",
       "irpfRate": 0,
       "irpfAmt": 0,
@@ -7848,6 +7851,7 @@ var SEED_DATA = {
       "payMethod": "transferencia",
       "notes": "CASHPATRI 24/04",
       "type": "expense",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205813.pdf",
       "client": "",
       "irpfRate": 0,
       "irpfAmt": 0,
@@ -7872,6 +7876,7 @@ var SEED_DATA = {
       "payMethod": "transferencia",
       "notes": "CASHPATRI 24/04 - Base IVA 21%: 477.96 + 21% iva 10%: 245.87",
       "type": "expense",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205814.pdf",
       "client": "",
       "irpfRate": 0,
       "irpfAmt": 0,
@@ -7896,6 +7901,7 @@ var SEED_DATA = {
       "payMethod": "transferencia",
       "notes": "CASHPATRI 24/04",
       "type": "expense",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205815.pdf",
       "client": "",
       "irpfRate": 0,
       "irpfAmt": 0,
@@ -7920,6 +7926,7 @@ var SEED_DATA = {
       "payMethod": "transferencia",
       "notes": "CASHPATRI 24/04",
       "type": "expense",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205816.pdf",
       "client": "",
       "irpfRate": 0,
       "irpfAmt": 0,
