@@ -1,7 +1,7 @@
-// Generated 2026-04-27 10:12
+// Generated 2026-04-27 18:00
 var SEED_DATA = {
-  "version": "2026-04-27-v3",
-  "nextId": 331,
+  "version": "2026-04-27-v4",
+  "nextId": 338,
   "invoices": [
     {
       "id": 1,
@@ -25,7 +25,8 @@ var SEED_DATA = {
       "payDate": "2026-03-26",
       "notes": "香水",
       "category": "",
-      "createdAt": "2026-03-26T12:00:00.000Z"
+      "createdAt": "2026-03-26T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/CARAVAN_FVV26006242.pdf"
     },
     {
       "id": 2,
@@ -49,7 +50,8 @@ var SEED_DATA = {
       "payDate": "2026-03-26",
       "notes": "篱笆网",
       "category": "",
-      "createdAt": "2026-03-26T12:00:00.000Z"
+      "createdAt": "2026-03-26T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/HERSIGRIM_2601653.pdf"
     },
     {
       "id": 3,
@@ -73,7 +75,8 @@ var SEED_DATA = {
       "payDate": "2026-03-30",
       "notes": "大单",
       "category": "",
-      "createdAt": "2026-03-30T12:00:00.000Z"
+      "createdAt": "2026-03-30T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/COCA-COLA_2718375273.pdf"
     },
     {
       "id": 4,
@@ -97,7 +100,8 @@ var SEED_DATA = {
       "payDate": "2026-03-31",
       "notes": "FANTA环保费",
       "category": "",
-      "createdAt": "2026-03-31T12:00:00.000Z"
+      "createdAt": "2026-03-31T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/COCA-COLA_2718425146.pdf"
     },
     {
       "id": 5,
@@ -121,7 +125,8 @@ var SEED_DATA = {
       "payDate": "2026-03-31",
       "notes": "PET饮料",
       "category": "",
-      "createdAt": "2026-03-31T12:00:00.000Z"
+      "createdAt": "2026-03-31T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/COCA-COLA_2718425149.pdf"
     },
     {
       "id": 6,
@@ -145,7 +150,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "电费",
       "category": "",
-      "createdAt": "2026-04-07T12:00:00.000Z"
+      "createdAt": "2026-04-07T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/SERVIGAS_20260228-20260331.pdf"
     },
     {
       "id": 7,
@@ -169,7 +175,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "折叠桌",
       "category": "",
-      "createdAt": "2026-04-08T12:00:00.000Z"
+      "createdAt": "2026-04-08T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/EUROFAMILIA_income.pdf"
     },
     {
       "id": 8,
@@ -193,7 +200,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "杀虫剂",
       "category": "",
-      "createdAt": "2026-04-01T12:00:00.000Z"
+      "createdAt": "2026-04-01T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/BEMALU_23Z-324074.pdf"
     },
     {
       "id": 9,
@@ -217,7 +225,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "五金",
       "category": "",
-      "createdAt": "2026-04-03T12:00:00.000Z"
+      "createdAt": "2026-04-03T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/LOGITRADE_Y26002069.pdf"
     },
     {
       "id": 10,
@@ -241,7 +250,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "网络",
       "category": "",
-      "createdAt": "2026-04-10T12:00:00.000Z"
+      "createdAt": "2026-04-10T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/TELECOM_FIBRA-300_2940.pdf"
     },
     {
       "id": 11,
@@ -265,7 +275,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "",
       "category": "",
-      "createdAt": "2026-04-15T12:00:00.000Z"
+      "createdAt": "2026-04-15T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/COCA-COLA_2719520669.pdf"
     },
     {
       "id": 12,
@@ -289,7 +300,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "啤酒软饮",
       "category": "",
-      "createdAt": "2026-04-14T12:00:00.000Z"
+      "createdAt": "2026-04-14T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205028.pdf"
     },
     {
       "id": 13,
@@ -313,7 +325,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "水",
       "category": "",
-      "createdAt": "2026-04-14T12:00:00.000Z"
+      "createdAt": "2026-04-14T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205030.pdf"
     },
     {
       "id": 14,
@@ -337,7 +350,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "咖啡零食",
       "category": "",
-      "createdAt": "2026-04-14T12:00:00.000Z"
+      "createdAt": "2026-04-14T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205033.pdf"
     },
     {
       "id": 15,
@@ -361,7 +375,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "退货",
       "category": "",
-      "createdAt": "2026-04-15T12:00:00.000Z"
+      "createdAt": "2026-04-15T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205214.pdf"
     },
     {
       "id": 16,
@@ -385,7 +400,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "糖",
       "category": "",
-      "createdAt": "2026-04-11T12:00:00.000Z"
+      "createdAt": "2026-04-11T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/GLUCK_SWEET_1_76369.pdf"
     },
     {
       "id": 17,
@@ -409,7 +425,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "醋",
       "category": "",
-      "createdAt": "2026-04-17T12:00:00.000Z"
+      "createdAt": "2026-04-17T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/GOYVAL_EE26147.pdf"
     },
     {
       "id": 18,
@@ -673,7 +690,8 @@ var SEED_DATA = {
       "payDate": "2026-04-20",
       "notes": "FACTURA PROFORMA - Entrega 20/04/2026 - Bruto 1633.04€ -\tdto 20%% 326.61€",
       "category": "",
-      "createdAt": "2026-04-20T10:50:00.000Z"
+      "createdAt": "2026-04-20T10:50:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/MARBUENO_PROFORMA-727-1.pdf"
     },
     {
       "id": 29,
@@ -7651,7 +7669,8 @@ var SEED_DATA = {
       "cashAmt": 0,
       "payDate": "",
       "category": "material",
-      "notes": "Agent: CRISTINA MONTILLA ROS"
+      "notes": "Agent: CRISTINA MONTILLA ROS",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/MARBUENO_1-404.pdf"
     },
     {
       "id": 320,
@@ -7726,15 +7745,19 @@ var SEED_DATA = {
         }
       ],
       "base": 2297.28,
-      "ivaRate": 10,
+      "ivaRate": 21,
       "iva": 229.73,
       "total": 2527.01,
-      "payMethod": "sepa",
+      "payMethod": "recibo",
       "status": "pending",
       "pedido": "7040554902",
       "albaran": "25443827",
       "puntoVerde": 0,
-      "num": "MISSING-322"
+      "num": "2206659603",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/QUALIANZA_2206659603.pdf",
+      "desc": "PRODUCTOS ALIMENTARIOS",
+      "ivaAmt": 229.73,
+      "bankAmt": 2527.01
     },
     {
       "id": 323,
@@ -7935,6 +7958,181 @@ var SEED_DATA = {
       "payDate": "2026-04-24",
       "category": "",
       "createdAt": "2026-04-27T07:57:10.000Z"
+    },
+    {
+      "id": 331,
+      "num": "9205397",
+      "date": "2026-04-20",
+      "due": "2026-05-20",
+      "supplier": "PRINCESALISIMO S.L.U.",
+      "nif": "B46350534",
+      "desc": "BEBIDAS Y REFRESCOS",
+      "base": 333.08,
+      "ivaRate": 21,
+      "ivaAmt": 69.947,
+      "total": 403.03,
+      "payMethod": "transferencia",
+      "bankAmt": 403.03,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "",
+      "category": "",
+      "type": "expense",
+      "client": "",
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205397.pdf",
+      "createdAt": "2026-04-27T16:00:00.000Z"
+    },
+    {
+      "id": 332,
+      "num": "9205398",
+      "date": "2026-04-20",
+      "due": "2026-05-20",
+      "supplier": "PRINCESALISIMO S.L.U.",
+      "nif": "B46350534",
+      "desc": "BEBIDAS Y REFRESCOS",
+      "base": 484.08,
+      "ivaRate": 21,
+      "ivaAmt": 101.657,
+      "total": 585.74,
+      "payMethod": "transferencia",
+      "bankAmt": 585.74,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "",
+      "category": "",
+      "type": "expense",
+      "client": "",
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205398.pdf",
+      "createdAt": "2026-04-27T16:00:00.000Z"
+    },
+    {
+      "id": 333,
+      "num": "9205399",
+      "date": "2026-04-20",
+      "due": "2026-05-20",
+      "supplier": "PRINCESALISIMO S.L.U.",
+      "nif": "B46350534",
+      "desc": "BEBIDAS Y REFRESCOS",
+      "base": 758.4,
+      "ivaRate": 21,
+      "ivaAmt": 159.264,
+      "total": 917.66,
+      "payMethod": "transferencia",
+      "bankAmt": 917.66,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "",
+      "category": "",
+      "type": "expense",
+      "client": "",
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205399.pdf",
+      "createdAt": "2026-04-27T16:00:00.000Z"
+    },
+    {
+      "id": 334,
+      "num": "9205400",
+      "date": "2026-04-20",
+      "due": "2026-05-20",
+      "supplier": "PRINCESALISIMO S.L.U.",
+      "nif": "B46350534",
+      "desc": "BEBIDAS Y REFRESCOS",
+      "base": 758.4,
+      "ivaRate": 21,
+      "ivaAmt": 159.264,
+      "total": 917.66,
+      "payMethod": "transferencia",
+      "bankAmt": 917.66,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "",
+      "category": "",
+      "type": "expense",
+      "client": "",
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205400.pdf",
+      "createdAt": "2026-04-27T16:00:00.000Z"
+    },
+    {
+      "id": 335,
+      "num": "9205401",
+      "date": "2026-04-20",
+      "due": "2026-05-20",
+      "supplier": "PRINCESALISIMO S.L.U.",
+      "nif": "B46350534",
+      "desc": "BEBIDAS Y REFRESCOS",
+      "base": 3445.2,
+      "ivaRate": 21,
+      "ivaAmt": 723.492,
+      "total": 4168.69,
+      "payMethod": "transferencia",
+      "bankAmt": 4168.69,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "",
+      "category": "",
+      "type": "expense",
+      "client": "",
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205401.pdf",
+      "createdAt": "2026-04-27T16:00:00.000Z"
+    },
+    {
+      "id": 336,
+      "num": "9205402",
+      "date": "2026-04-20",
+      "due": "2026-05-20",
+      "supplier": "PRINCESALISIMO S.L.U.",
+      "nif": "B46350534",
+      "desc": "BEBIDAS Y REFRESCOS",
+      "base": 3445.2,
+      "ivaRate": 21,
+      "ivaAmt": 723.492,
+      "total": 4168.69,
+      "payMethod": "transferencia",
+      "bankAmt": 4168.69,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "",
+      "category": "",
+      "type": "expense",
+      "client": "",
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9205402.pdf",
+      "createdAt": "2026-04-27T16:00:00.000Z"
+    },
+    {
+      "id": 337,
+      "num": "FVA2604156",
+      "date": "2026-03-20",
+      "due": "2026-04-19",
+      "supplier": "",
+      "nif": "",
+      "desc": "HORNILLO DE GAS PORTATIL",
+      "base": 383.13,
+      "ivaRate": 21,
+      "ivaAmt": 80.46,
+      "total": 463.59,
+      "payMethod": "transferencia",
+      "bankAmt": 463.59,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "",
+      "category": "",
+      "type": "income",
+      "client": "ANA",
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/EUROFAMILIA_FVA2604156.pdf",
+      "createdAt": "2026-04-27T16:00:00.000Z"
     }
   ],
   "suppliers": [
