@@ -72,6 +72,15 @@ tr:hover td{background:#faf5ff}
 .quarter-btn{padding:8px 16px;border:2px solid #e5e7eb;border-radius:8px;background:#fff;font-weight:600;cursor:pointer;transition:all .2s}
 .quarter-btn.active{border-color:#7c3aed;background:#f5f3ff;color:#7c3aed}
 .quarter-btn:hover{border-color:#7c3aed}
+.filter-bar{background:#fff;border-bottom:1.5px solid #e9e5f5;padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.filter-bar label{font-size:12px;font-weight:600;color:#6b7280;white-space:nowrap}
+.filter-bar select,.filter-bar input[type=text]{padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff}
+.filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.filter-reset{padding:6px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;font-size:12px;color:#6b7280;cursor:pointer;font-weight:600}
+.filter-reset:hover{background:#fee2e2;color:#dc2626;border-color:#fecaca}
+.filter-label{font-size:11px;color:#7c3aed;font-weight:600;background:#f5f3ff;padding:4px 10px;border-radius:12px}
+.filter-bar .date-range{display:flex;align-items:center;gap:6px}
+.filter-bar .date-range input[type=date]{padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;width:135px}
 .report-table{width:100%;border-collapse:collapse;font-size:14px}
 .report-table th{background:#7c3aed;color:#fff;padding:10px}
 .report-table td{padding:8px 10px;border:1px solid #e5e7eb;text-align:right}
@@ -104,7 +113,7 @@ tr:hover td{background:#faf5ff}
     <div class="subtitle">Gestión de Facturas · 收付款管理 · 税务申报 · EUROFAMILIA HORTA SUD S.L.</div>
   </div>
   <div class="header-right">
-    <select id="yearFilter" onchange="refreshAll()"></select>
+    <select id="filterYear" style="display:none" onchange="refreshAll()"></select>
     <span id="saveStatusBadge" class="save-badge">✅ 已保存</span>
     <button class="btn btn-secondary btn-sm" onclick="exportData()">💾 导出备份</button>
     <label class="btn btn-info btn-sm" style="cursor:pointer">📂 导入数据<input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none"></label>
@@ -135,6 +144,33 @@ tr:hover td{background:#faf5ff}
   <button class="tab-btn" onclick="switchTab('expense')">📤 支出发票</button>
   <button class="tab-btn" onclick="switchTab('payments')">💳 收付款</button>
   <button class="tab-btn" onclick="switchTab('report')">📋 季度申报</button>
+</div>
+
+<div class="filter-bar" id="filterBar">
+  <label>📅 年份</label>
+  <select id="filterYear" onchange="onFilterChange()"></select>
+  <label>季度</label>
+  <button class="quarter-btn active" onclick="setQuarterFilter(0,this)">全部</button>
+  <button class="quarter-btn" onclick="setQuarterFilter(1,this)">T1</button>
+  <button class="quarter-btn" onclick="setQuarterFilter(2,this)">T2</button>
+  <button class="quarter-btn" onclick="setQuarterFilter(3,this)">T3</button>
+  <button class="quarter-btn" onclick="setQuarterFilter(4,this)">T4</button>
+  <label>月份</label>
+  <select id="filterMonth" onchange="onFilterChange()">
+    <option value="0">全部</option>
+    <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+    <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+    <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+    <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+  </select>
+  <label>供应商</label>
+  <input type="text" id="filterSupplier" placeholder="搜索供应商..." oninput="onFilterChange()" style="width:180px">
+  <label style="margin-left:8px">从</label>
+  <input type="date" id="filterDateFrom" onchange="onFilterChange()">
+  <label>到</label>
+  <input type="date" id="filterDateTo" onchange="onFilterChange()">
+  <button class="filter-reset" onclick="resetFilters()">✕ 清除筛选</button>
+  <span id="filterResultLabel" class="filter-label" style="margin-left:auto"></span>
 </div>
 
 <div id="tab-dashboard" class="tab-content active">
@@ -273,7 +309,11 @@ tr:hover td{background:#faf5ff}
 /* ===== DATABASE ===== */
 var DB = { invoices: [], nextId: 1, version: '' };
 var isDirty = false;
-var currentQuarter = 1;
+var currentQuarter = 0;
+var currentMonth = 0;
+var filterSupplier = '';
+var filterDateFrom = '';
+var filterDateTo = '';
 var SUPPLIER_DB = [];
 
 /* ===== LOAD / SAVE (STABLE VERSION) ===== */
@@ -374,16 +414,16 @@ function notify(msg, type) {
 function initYear() {
   var years = {};
   DB.invoices.forEach(function(i){ years[getYear(i.date)] = true; });
-  var sel = document.getElementById('yearFilter');
+  var sel = document.getElementById('filterYear');
   var ry = document.getElementById('reportYear');
-  sel.innerHTML = '<option value="all">全部年份</option>';
-  ry.innerHTML = '';
+  if(sel) sel.innerHTML = '<option value="all">全部年份</option>';
+  if(ry) ry.innerHTML = '';
   Object.keys(years).sort().reverse().forEach(function(y){
-    sel.innerHTML += '<option value="'+y+'">'+y+'</option>';
-    ry.innerHTML += '<option value="'+y+'">'+y+'</option>';
+    if(sel) sel.innerHTML += '<option value="'+y+'">'+y+'</option>';
+    if(ry) ry.innerHTML += '<option value="'+y+'">'+y+'</option>';
   });
   var cy = new Date().getFullYear().toString();
-  if(years[cy]){ sel.value=cy; ry.value=cy; }
+  if(years[cy]){ if(sel) sel.value=cy; if(ry) ry.value=cy; }
 }
 
 function switchTab(name) {
@@ -550,20 +590,86 @@ function savePayment() {
 }
 
 /* ===== FILTERS ===== */
-function filterByYear(list) {
-  var y = document.getElementById('yearFilter').value;
-  if (y === 'all') return list;
-  return list.filter(function(i){ return getYear(i.date) === y; });
+function filterInvoices(list) {
+  var y = document.getElementById('filterYear') ? document.getElementById('filterYear').value : 'all';
+  var q = currentQuarter;
+  var m = currentMonth;
+  var s = filterSupplier.toUpperCase();
+  var df = filterDateFrom;
+  var dt = filterDateTo;
+  
+  return list.filter(function(i){
+    // Year filter
+    if (y !== 'all' && getYear(i.date) !== y) return false;
+    // Quarter filter (only if month not set explicitly)
+    if (q > 0) {
+      var mm = parseInt(i.date.split('-')[1]);
+      var qStart = (q-1)*3+1, qEnd = q*3;
+      if (mm < qStart || mm > qEnd) return false;
+    }
+    // Month filter
+    if (m > 0) {
+      var mo = parseInt(i.date.split('-')[1]);
+      if (mo !== m) return false;
+    }
+    // Supplier filter (search name or nif)
+    if (s) {
+      var sup = (i.supplier || '').toUpperCase();
+      var nif = (i.nif || '').toUpperCase();
+      if (sup.indexOf(s) < 0 && nif.indexOf(s) < 0) return false;
+    }
+    // Date range filter
+    if (df && i.date < df) return false;
+    if (dt && i.date > dt) return false;
+    return true;
+  });
 }
 
-function qFilter(inv) {
-  var y = document.getElementById('reportYear').value;
-  var q = currentQuarter;
-  if(!y) return false;
-  var d = inv.date;
-  if(getYear(d) !== y) return false;
-  var m = parseInt(d.split('-')[1]);
-  return m >= (q-1)*3+1 && m <= q*3;
+function setQuarterFilter(q, btn) {
+  currentQuarter = q;
+  document.querySelectorAll('#filterBar .quarter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  // Clear month when quarter changes
+  if (q > 0) { currentMonth = 0; document.getElementById('filterMonth').value = '0'; }
+  onFilterChange();
+}
+
+function onFilterChange() {
+  var y = document.getElementById('filterYear').value;
+  var mEl = document.getElementById('filterMonth');
+  currentMonth = parseInt(mEl.value) || 0;
+  // If month selected, disable quarter
+  if (currentMonth > 0) {
+    currentQuarter = 0;
+    document.querySelectorAll('#filterBar .quarter-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelector('#filterBar .quarter-btn').classList.add('active');
+  }
+  filterSupplier = document.getElementById('filterSupplier').value.trim();
+  filterDateFrom = document.getElementById('filterDateFrom').value;
+  filterDateTo = document.getElementById('filterDateTo').value;
+  
+  // Update label
+  var parts = [];
+  if (y !== 'all') parts.push(y + '年');
+  if (currentQuarter > 0) parts.push('Q' + currentQuarter);
+  if (currentMonth > 0) parts.push(currentMonth + '月');
+  if (filterDateFrom || filterDateTo) parts.push((filterDateFrom||'...') + '~' + (filterDateTo||'...'));
+  if (filterSupplier) parts.push('🔍 ' + filterSupplier);
+  document.getElementById('filterResultLabel').textContent = parts.length ? '筛选: ' + parts.join(' · ') : '全部发票';
+  
+  refreshAll();
+}
+
+function resetFilters() {
+  currentQuarter = 0; currentMonth = 0; filterSupplier = ''; filterDateFrom = ''; filterDateTo = '';
+  document.getElementById('filterYear').value = 'all';
+  document.getElementById('filterMonth').value = '0';
+  document.getElementById('filterSupplier').value = '';
+  document.getElementById('filterDateFrom').value = '';
+  document.getElementById('filterDateTo').value = '';
+  document.querySelectorAll('#filterBar .quarter-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelector('#filterBar .quarter-btn').classList.add('active');
+  onFilterChange();
 }
 
 /* ===== RENDER ===== */
@@ -577,7 +683,7 @@ function refreshAll() {
 }
 
 function renderDashboard() {
-  var all = filterByYear(DB.invoices);
+  var all = filterInvoices(DB.invoices);
   var income = all.filter(function(i){return i.type==='income'||i.type==='sale';});
   var expense = all.filter(function(i){return i.type==='expense'||i.type==='abono';});
   var totalIn = income.reduce(function(s,i){return s+i.base;},0);
@@ -617,7 +723,7 @@ function renderDashboard() {
 }
 
 function renderIncome() {
-  var list = filterByYear(DB.invoices.filter(function(i){return i.type==='income'||i.type==='sale';}));
+  var list = filterInvoices(DB.invoices.filter(function(i){return i.type==='income'||i.type==='sale';}));
   document.getElementById('incomeCount').textContent = list.length + ' 张';
   list.sort(function(a,b){return b.date.localeCompare(a.date);});
   document.getElementById('incomeList').innerHTML = '<table><tr><th>类型</th><th>发票号</th><th>客户</th><th>Base</th><th>IVA%</th><th>IVA</th><th>总额</th><th>日期</th><th>付款</th><th>操作</th></tr>' +
@@ -626,7 +732,7 @@ function renderIncome() {
 }
 
 function renderExpense() {
-  var list = filterByYear(DB.invoices.filter(function(i){return i.type==='expense'||i.type==='abono';}));
+  var list = filterInvoices(DB.invoices.filter(function(i){return i.type==='expense'||i.type==='abono';}));
   document.getElementById('expenseCount').textContent = list.length + ' 张';
   list.sort(function(a,b){return b.date.localeCompare(a.date);});
   document.getElementById('expenseList').innerHTML = '<table><tr><th>类型</th><th>发票号</th><th>供应商</th><th>NIF</th><th>Base</th><th>IVA%</th><th>IVA</th><th>总额</th><th>日期</th><th>付款</th><th>操作</th></tr>' +
@@ -635,7 +741,7 @@ function renderExpense() {
 }
 
 function renderPayments() {
-  var all = filterByYear(DB.invoices);
+  var all = filterInvoices(DB.invoices);
   var receivable = all.filter(function(i){return (i.type==='income'||i.type==='sale')&&getPayStatus(i)!=='paid';}).reduce(function(s,i){return s+i.total;},0);
   var payable = all.filter(function(i){return (i.type==='expense'||i.type==='abono')&&getPayStatus(i)!=='paid';}).reduce(function(s,i){return s+i.total;},0);
   var received = all.filter(function(i){return (i.type==='income'||i.type==='sale')&&getPayStatus(i)==='paid';}).reduce(function(s,i){return s+i.total;},0);
@@ -654,13 +760,27 @@ function renderPayments() {
 
 function setQuarter(q, btn) {
   currentQuarter = q;
-  document.querySelectorAll('.quarter-btn').forEach(function(b){b.classList.remove('active');});
+  // Sync filter bar quarter buttons
+  var fBtns = document.querySelectorAll('#filterBar .quarter-btn');
+  fBtns.forEach(function(b,i){b.classList.toggle('active', i===q);});
+  // Update report tab buttons
+  document.querySelectorAll('#tab-report .quarter-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
-  renderReport();
+ // Clear month filter when quarter changes
+  if (q > 0) { currentMonth = 0; var fm = document.getElementById('filterMonth'); if(fm) fm.value = '0'; }
+  onFilterChange();
 }
 
 function renderReport() {
-  var all = DB.invoices.filter(qFilter);
+  var y = document.getElementById('reportYear').value || new Date().getFullYear();
+  var q = currentQuarter;
+  // If global filter has a quarter, use it; otherwise use report tab's quarter
+  var useQ = q > 0 ? q : 1;
+  var all = DB.invoices.filter(function(inv){
+    if(getYear(inv.date) !== String(y)) return false;
+    var mm = parseInt(inv.date.split('-')[1]);
+    return mm >= (useQ-1)*3+1 && mm <= useQ*3;
+  });
   var income = all.filter(function(i){return i.type==='income'||i.type==='sale';});
   var expense = all.filter(function(i){return i.type==='expense'||i.type==='abono';});
   
