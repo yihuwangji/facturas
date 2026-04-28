@@ -1,6 +1,6 @@
 // Generated 2026-04-27 18:15
 var SEED_DATA = {
-  "version": "2026-04-27-v4",
+  "version": "2026-04-28-v1",
   "nextId": 340,
   "invoices": [
     {
