@@ -1,7 +1,7 @@
 // Generated 2026-04-27 18:15
 var SEED_DATA = {
   "version": "2026-04-27-v4",
-  "nextId": 338,
+  "nextId": 340,
   "invoices": [
     {
       "id": 1,
@@ -8142,7 +8142,58 @@ var SEED_DATA = {
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/EUROFAMILIA_FVA2604156.pdf",
       "createdAt": "2026-04-27T16:00:00.000Z"
     }
-  ],
+  ]
+    {
+      "id": 338,
+      "type": "expense",
+      "num": "20260146",
+      "date": "2026-04-28",
+      "due": "2026-05-28",
+      "supplier": "EUROFAMILIA HORTA SUR",
+      "client": "",
+      "nif": "",
+      "desc": "TEXTIL SANO 袜子",
+      "base": 745.80,
+      "ivaRate": 21,
+      "ivaAmt": 156.62,
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "total": 902.42,
+      "payMethod": "bank",
+      "bankAmt": 0,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "TEXTIL SANO 袜子 888件",
+      "category": "",
+      "createdAt": "2026-04-28T12:00:00.000Z",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/FACTURA20260146_EUROFAMILIA.pdf"
+    },
+    {
+      "id": 339,
+      "type": "expense",
+      "num": "2026000588",
+      "date": "2026-04-28",
+      "due": "2026-05-28",
+      "supplier": "EUROFAMILIA HORTA SUR",
+      "client": "",
+      "nif": "",
+      "desc": "CANZO GLOBAL 靠垫/枕头/宠物袋",
+      "base": 590.29,
+      "ivaRate": 21,
+      "ivaAmt": 123.96,
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "total": 714.25,
+      "payMethod": "bank",
+      "bankAmt": 0,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "CANZO GLOBAL 靠垫/枕头/宠物袋 425件",
+      "category": "",
+      "createdAt": "2026-04-28T13:00:00.000Z",
+      "pdfFile": ""
+    },
+,
   "suppliers": [
     {
       "name": "PRINCESALISIMO, SLU",
