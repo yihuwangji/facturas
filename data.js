@@ -8141,8 +8141,7 @@ var SEED_DATA = {
       "irpfAmt": 0,
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/EUROFAMILIA_FVA2604156.pdf",
       "createdAt": "2026-04-27T16:00:00.000Z"
-    }
-  ]
+    },
     {
       "id": 338,
       "type": "expense",
@@ -8192,8 +8191,8 @@ var SEED_DATA = {
       "category": "",
       "createdAt": "2026-04-28T13:00:00.000Z",
       "pdfFile": ""
-    },
-,
+    }
+  ],
   "suppliers": [
     {
       "name": "PRINCESALISIMO, SLU",
