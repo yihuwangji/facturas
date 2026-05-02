@@ -1,6 +1,6 @@
 // Generated 2026-04-27 18:15
 var SEED_DATA = {
-  "version": "2026-05-02-v1",
+  "version": "2026-05-02-v2",
   "nextId": 346,
   "invoices": [
     {
@@ -692,7 +692,7 @@ var SEED_DATA = {
       "bankAmt": 1580.78,
       "cashAmt": 0,
       "payDate": "2026-04-20",
-      "notes": "FACTURA PROFORMA - Entrega 20/04/2026 - Bruto 1633.04€ -	dto 20%% 326.61€",
+      "notes": "FACTURA PROFORMA - Entrega 20/04/2026 - Bruto 1633.04\u20ac -\tdto 20%% 326.61\u20ac",
       "category": "",
       "createdAt": "2026-04-20T10:50:00.000Z",
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/MARBUENO_PROFORMA-727-1.pdf"
