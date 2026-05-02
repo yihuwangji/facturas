@@ -1,7 +1,7 @@
 // Generated 2026-04-27 18:15
 var SEED_DATA = {
-  "version": "2026-05-02-v2",
-  "nextId": 345,
+  "version": "2026-05-02-v1",
+  "nextId": 346,
   "invoices": [
     {
       "id": 1,
@@ -692,7 +692,7 @@ var SEED_DATA = {
       "bankAmt": 1580.78,
       "cashAmt": 0,
       "payDate": "2026-04-20",
-      "notes": "FACTURA PROFORMA - Entrega 20/04/2026 - Bruto 1633.04€ -\tdto 20%% 326.61€",
+      "notes": "FACTURA PROFORMA - Entrega 20/04/2026 - Bruto 1633.04€ -	dto 20%% 326.61€",
       "category": "",
       "createdAt": "2026-04-20T10:50:00.000Z",
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/MARBUENO_PROFORMA-727-1.pdf"
@@ -8152,7 +8152,7 @@ var SEED_DATA = {
       "client": "",
       "nif": "",
       "desc": "TEXTIL SANO 袜子",
-      "base": 745.80,
+      "base": 745.8,
       "ivaRate": 21,
       "ivaAmt": 156.62,
       "irpfRate": 0,
@@ -8191,6 +8191,7 @@ var SEED_DATA = {
       "category": "",
       "createdAt": "2026-04-28T13:00:00.000Z",
       "pdfFile": ""
+    },
     {
       "id": 340,
       "type": "expense",
@@ -8301,6 +8302,22 @@ var SEED_DATA = {
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/PRINCESALISIMO_9206127.pdf",
       "createdAt": "2026-05-02T10:00:00.000Z"
     },
+    {
+      "id": 345,
+      "type": "expense",
+      "num": "2026001083",
+      "date": "30/04/2026",
+      "due": "",
+      "supplier": "YOUCHENG 2024, SL",
+      "nif": "B19464627",
+      "desc": "Factura YOUCHENG 2024 S.L. - Velas y tealights (939 unidades)",
+      "base": 812.6,
+      "ivaPct": 21,
+      "iva": 170.65,
+      "total": 983.25,
+      "paid": false,
+      "payMethod": "",
+      "notes": ""
     }
   ],
   "suppliers": [
