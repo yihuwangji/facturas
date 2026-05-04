@@ -1,6 +1,6 @@
 var SEED_DATA = {
-  "version": "2026-05-04-v3",
-  "nextId": 350,
+  "version": "2026-05-04-v4",
+  "nextId": 351,
   "invoices": [
     {
       "id": 1,
@@ -8404,6 +8404,25 @@ var SEED_DATA = {
       "status": "pending",
       "notes": "",
       "pdfFile": "pdfs/RAUL_BERMELL_7586.jpg"
+    },
+    {
+      "id": 350,
+      "type": "expense",
+      "num": "1102722853",
+      "date": "2026-04-30",
+      "due": "2026-05-30",
+      "supplier": "GLUCK & SWEET, S.L.U.",
+      "nif": "ES802354413",
+      "client": "EUROFAMILIA HORTA SUD, S.L.",
+      "cif": "B98639255",
+      "desc": "FANTASIA MIX BR BOL-1KG VL x12 + HAPPY MIX B-1Kg VL x12",
+      "base": 81.54,
+      "rate": 10,
+      "iva": 8.15,
+      "total": 89.69,
+      "payMethod": "pending",
+      "status": "pending",
+      "notes": "Pedido 800662673, Ref 204_514, PAGADO"
     }
   ],
   "suppliers": [
