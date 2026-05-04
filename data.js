@@ -1,7 +1,6 @@
-// Generated 2026-04-27 18:15
 var SEED_DATA = {
-  "version": "2026-05-04-v2",
-  "nextId": 347,
+  "version": "2026-05-04-v3",
+  "nextId": 350,
   "invoices": [
     {
       "id": 1,
@@ -692,7 +691,7 @@ var SEED_DATA = {
       "bankAmt": 1580.78,
       "cashAmt": 0,
       "payDate": "2026-04-20",
-      "notes": "FACTURA PROFORMA - Entrega 20/04/2026 - Bruto 1633.04\u20ac -\tdto 20%% 326.61\u20ac",
+      "notes": "FACTURA PROFORMA - Entrega 20/04/2026 - Bruto 1633.04€ -\tdto 20%% 326.61€",
       "category": "",
       "createdAt": "2026-04-20T10:50:00.000Z",
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/MARBUENO_PROFORMA-727-1.pdf"
@@ -8320,8 +8319,7 @@ var SEED_DATA = {
       "total": 983.25,
       "payMethod": "",
       "notes": ""
-    }
-  ,
+    },
     {
       "id": 346,
       "num": "FVA2606656",
@@ -8330,7 +8328,7 @@ var SEED_DATA = {
       "supplier": "CRISCOLOR",
       "nif": "",
       "desc": "VENTILADORES Y ARTICULOS DE JARDIN (FANS, PISCINA, JARDIN)",
-      "base": 4471.30,
+      "base": 4471.3,
       "ivaRate": 21,
       "ivaAmt": 938.97,
       "irpfRate": 0,
@@ -8346,8 +8344,65 @@ var SEED_DATA = {
       "client": "",
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/FVA2606656_2026-04-30.pdf",
       "createdAt": "2026-05-04T08:45:00.000Z"
+    },
+    {
+      "id": 347,
+      "type": "expense",
+      "num": "7584",
+      "date": "2026-05-03",
+      "due": "2026-05-04",
+      "supplier": "RAUL BERMELL ROSELLO",
+      "nif": "52685200-C",
+      "client": "EUROFAMILIA HORTA SUD, S.L.",
+      "cif": "B98639255",
+      "desc": "ACEITUNA COCTEL BOT 5 KG x 70",
+      "base": 840.0,
+      "rate": 10,
+      "iva": 84.0,
+      "total": 924.0,
+      "payMethod": "pending",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "id": 348,
+      "type": "expense",
+      "num": "7585",
+      "date": "2026-05-03",
+      "due": "2026-05-06",
+      "supplier": "RAUL BERMELL ROSELLO",
+      "nif": "52685200-C",
+      "client": "EUROFAMILIA HORTA SUD, S.L.",
+      "cif": "B98639255",
+      "desc": "ACEITUNA COCTEL CUBO x 45",
+      "base": 877.5,
+      "rate": 10,
+      "iva": 87.75,
+      "total": 965.25,
+      "payMethod": "pending",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "id": 349,
+      "type": "expense",
+      "num": "7586",
+      "date": "2026-05-05",
+      "due": "2026-05-06",
+      "supplier": "RAUL BERMELL ROSELLO",
+      "nif": "52685200-C",
+      "client": "EUROFAMILIA HORTA SUD, S.L.",
+      "cif": "B98639255",
+      "desc": "ACEITUNA COCTEL CUBO x 27",
+      "base": 526.5,
+      "rate": 10,
+      "iva": 52.65,
+      "total": 579.15,
+      "payMethod": "pending",
+      "status": "pending",
+      "notes": ""
     }
-],
+  ],
   "suppliers": [
     {
       "name": "PRINCESALISIMO, SLU",
@@ -8598,6 +8653,11 @@ var SEED_DATA = {
       "name": "MEDIA MARKT SATURN S.A.",
       "nif": "ESA82037292",
       "ivaRate": 21
+    },
+    {
+      "name": "RAUL BERMELL ROSELLO",
+      "nif": "52685200-C",
+      "rate": 10
     }
   ]
 };
