@@ -1,7 +1,7 @@
 // Generated 2026-04-27 18:15
 var SEED_DATA = {
-  "version": "2026-05-02-v3",
-  "nextId": 346,
+  "version": "2026-05-04-v1",
+  "nextId": 347,
   "invoices": [
     {
       "id": 1,
@@ -8321,7 +8321,33 @@ var SEED_DATA = {
       "payMethod": "",
       "notes": ""
     }
-  ],
+  ,
+    {
+      "id": 346,
+      "num": "FVA2606656",
+      "date": "2026-04-30",
+      "due": "2026-05-30",
+      "supplier": "",
+      "nif": "",
+      "desc": "VENTILADORES Y ARTICULOS DE JARDIN (FANS, PISCINA, JARDIN)",
+      "base": 4471.30,
+      "ivaRate": 21,
+      "ivaAmt": 938.97,
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "total": 5410.27,
+      "payMethod": "transferencia",
+      "bankAmt": 0,
+      "cashAmt": 0,
+      "payDate": "",
+      "notes": "DTO 5%: 1219.88 EUR. Pago fraccionado: 1803.24+1803.24+1803.79 EUR (30/05, 29/06, 29/07). Vendedor: ANA (N 55). IVA 21%.",
+      "category": "",
+      "type": "income",
+      "client": "ANA",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/FVA2606656_2026-04-30.pdf",
+      "createdAt": "2026-05-04T08:45:00.000Z"
+    }
+],
   "suppliers": [
     {
       "name": "PRINCESALISIMO, SLU",
