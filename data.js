@@ -8362,7 +8362,8 @@ var SEED_DATA = {
       "total": 924.0,
       "payMethod": "pending",
       "status": "pending",
-      "notes": ""
+      "notes": "",
+      "pdfFile": "pdfs/RAUL_BERMELL_7584.jpg"
     },
     {
       "id": 348,
@@ -8381,7 +8382,8 @@ var SEED_DATA = {
       "total": 965.25,
       "payMethod": "pending",
       "status": "pending",
-      "notes": ""
+      "notes": "",
+      "pdfFile": "pdfs/RAUL_BERMELL_7585.jpg"
     },
     {
       "id": 349,
@@ -8400,7 +8402,8 @@ var SEED_DATA = {
       "total": 579.15,
       "payMethod": "pending",
       "status": "pending",
-      "notes": ""
+      "notes": "",
+      "pdfFile": "pdfs/RAUL_BERMELL_7586.jpg"
     }
   ],
   "suppliers": [
