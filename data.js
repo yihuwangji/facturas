@@ -1,6 +1,6 @@
 var SEED_DATA = {
-  "version": "2026-05-05-v3",
-  "nextId": 354,
+  "version": "2026-05-05-v4",
+  "nextId": 355,
   "invoices": [
     {
       "id": 1,
@@ -8480,6 +8480,25 @@ var SEED_DATA = {
       "payMethod": "pagare",
       "status": "pending",
       "notes": "Lote 15264, Ruta 108, PAGARE 30 DIAS F/F, Forma de pago: pagaré 30 días fecha factura"
+    },
+    {
+      "id": 354,
+      "type": "expense",
+      "num": "26/00919",
+      "date": "2026-05-05",
+      "due": "2026-06-04",
+      "supplier": "H&J TEXHOGAR, S.L.U.",
+      "nif": "B98702434",
+      "client": "EUROFAMILIA HORTA SUD SL",
+      "cif": "B98639255",
+      "desc": "TUMBONA ACOLCHADO x26 + HAMACA ACOLCHADO x30 + TUMBONA 180X50X3.5 x30 + HAMACA 120X50X3.5 x27",
+      "base": 815.34,
+      "rate": 21,
+      "iva": 171.22,
+      "total": 986.56,
+      "payMethod": "pagare",
+      "status": "pending",
+      "notes": "Pagina 01, Imp.Brut 986.50, DTO 17.35/1.75% = 171.16"
     }
   ],
   "suppliers": [
