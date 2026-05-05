@@ -1,6 +1,6 @@
 var SEED_DATA = {
-  "version": "2026-05-05-v4",
-  "nextId": 355,
+  "version": "2026-05-05-v5",
+  "nextId": 356,
   "invoices": [
     {
       "id": 1,
@@ -8435,7 +8435,7 @@ var SEED_DATA = {
       "client": "EUROFAMILIA HORTA SUD, S.L.",
       "cif": "B98639255",
       "desc": "FRASCO 150 ML CARAVAN EAU DE PARFUM (variados) x40uds",
-      "base": 448.00,
+      "base": 448.0,
       "rate": 21,
       "iva": 94.08,
       "total": 542.08,
@@ -8473,7 +8473,7 @@ var SEED_DATA = {
       "client": "EUROFAMILIA HORTA SUD, S.L.",
       "cif": "B98639255",
       "desc": "CACAHUETE CASCARA 3KG - 100 bultos C/SAL + 20 bultos SIN SAL",
-      "base": 734.20,
+      "base": 734.2,
       "rate": 10,
       "iva": 73.42,
       "total": 807.62,
@@ -8499,6 +8499,25 @@ var SEED_DATA = {
       "payMethod": "pagare",
       "status": "pending",
       "notes": "Pagina 01, Imp.Brut 986.50, DTO 17.35/1.75% = 171.16"
+    },
+    {
+      "id": 355,
+      "type": "expense",
+      "num": "26/1116",
+      "date": "2026-04-30",
+      "due": "2026-06-30",
+      "supplier": "ECOTERRAFLOR, S.L.U.",
+      "nif": "B-47416755",
+      "client": "EUROFAMILIA HORTA SUR S.L.",
+      "cif": "B98639255",
+      "desc": "SACO ECOTERRAFLOR 50L - 576 uds (DTO.COM. -52 uds)",
+      "base": 1150.18,
+      "rate": 10,
+      "iva": 115.02,
+      "total": 1265.2,
+      "payMethod": "transferencia",
+      "status": "pending",
+      "notes": "Albaran 26/1212 Fecha 27/04/2026, Pedido VN/26-00062, pago 60 dias transferencia, CC ES53 2100 3754 1322 00010779"
     }
   ],
   "suppliers": [
