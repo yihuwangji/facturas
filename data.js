@@ -1,6 +1,6 @@
 var SEED_DATA = {
-  "version": "2026-05-05-v2",
-  "nextId": 353,
+  "version": "2026-05-05-v3",
+  "nextId": 354,
   "invoices": [
     {
       "id": 1,
@@ -8461,6 +8461,25 @@ var SEED_DATA = {
       "payMethod": "pagare",
       "status": "paid",
       "notes": "Albaran 2026/61 Fecha 16/02/26, S/Ped 2026/00057, Lote 016-U F.Cad 01/2029, vencimiento 18/04/2026, Cuenta ES1821008288231300129977, mediador UNO-GM, transportista SERVIPLAS LEVANTE"
+    },
+    {
+      "id": 353,
+      "type": "expense",
+      "num": "F26 101.164",
+      "date": "2026-05-04",
+      "due": "2026-06-03",
+      "supplier": "PRODUCTOS CHURRUCA, S.A.",
+      "nif": "A-46110103",
+      "client": "EUROFAMILIA HORTA SUD, S.L.",
+      "cif": "B98639255",
+      "desc": "CACAHUETE CASCARA 3KG - 100 bultos C/SAL + 20 bultos SIN SAL",
+      "base": 734.20,
+      "rate": 10,
+      "iva": 73.42,
+      "total": 807.62,
+      "payMethod": "pagare",
+      "status": "pending",
+      "notes": "Lote 15264, Ruta 108, PAGARE 30 DIAS F/F, Forma de pago: pagaré 30 días fecha factura"
     }
   ],
   "suppliers": [
