@@ -1,6 +1,6 @@
 var SEED_DATA = {
-  "version": "2026-05-04-v4",
-  "nextId": 351,
+  "version": "2026-05-05-v1",
+  "nextId": 352,
   "invoices": [
     {
       "id": 1,
@@ -8423,6 +8423,25 @@ var SEED_DATA = {
       "payMethod": "pending",
       "status": "pending",
       "notes": "Pedido 800662673, Ref 204_514, PAGADO"
+    },
+    {
+      "id": 351,
+      "type": "expense",
+      "num": "FVV26010340",
+      "date": "2026-04-29",
+      "due": "2026-06-29",
+      "supplier": "CARAVAN FRAGANCIAS, S.L.U.",
+      "nif": "ESB99301897",
+      "client": "EUROFAMILIA HORTA SUD, S.L.",
+      "cif": "B98639255",
+      "desc": "FRASCO 150 ML CARAVAN EAU DE PARFUM (variados) x40uds",
+      "base": 448.00,
+      "rate": 21,
+      "iva": 94.08,
+      "total": 542.08,
+      "payMethod": "transfer",
+      "status": "pending",
+      "notes": "Albaran AVV26009419 de 22/04/26, LAPUENTE-RDA, Agente VICENTE MARTI, vencimiento 29/06/2026"
     }
   ],
   "suppliers": [
