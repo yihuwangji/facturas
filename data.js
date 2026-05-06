@@ -1,6 +1,6 @@
 var SEED_DATA = {
   "version": "2026-05-06-v1",
-  "nextId": 357,
+  "nextId": 358,
   "invoices": [
     {
       "id": 1,
@@ -8537,6 +8537,26 @@ var SEED_DATA = {
       "payMethod": "",
       "status": "pending",
       "notes": "IVA DTO 3% P.P., bank details: BANKINTER ES8401287632780100016156 / CAIXA BANK ES4221001717250200206882 / CAJAMAR ES8330582275942720004553 / SANTANDER ES9700492768182414007766 / BBVA ES9301822972510201719639"
+    },
+    {
+      "id": 357,
+      "type": "expense",
+      "num": "2026/A/3821",
+      "date": "2026-05-10",
+      "due": "2026-05-10",
+      "supplier": "TELECOM CALDERONA",
+      "nif": "B98453889",
+      "client": "EUROFAMILIA HORTA SUD S.L.",
+      "cif": "B98639255",
+      "desc": "FIBRA PROPIA 300",
+      "base": 32.97,
+      "rate": 21,
+      "iva": 6.92,
+      "total": 39.89,
+      "payMethod": "bank",
+      "status": "pending",
+      "notes": "",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/TELECOM_CALDERONA_3821.pdf"
     }
   ],
   "suppliers": [
@@ -8712,7 +8732,7 @@ var SEED_DATA = {
     },
     {
       "name": "TELECOM CALDERONA",
-      "nif": "",
+      "nif": "B98453889",
       "ivaRate": 21
     },
     {
