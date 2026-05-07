@@ -1,0 +1,5 @@
+facturas.db
+facturas.db-shm
+facturas.db-wal
+backups/sqlite_*.json
+backups/index_before_*.html

@@ -464,14 +464,77 @@ var filterDateFrom = '';
 var filterDateTo = '';
 var SUPPLIER_DB = [];
 
-/* ===== LOAD / SAVE (STABLE VERSION) ===== */
-function load() {
+/* ===== LOAD / SAVE (LOCAL SERVER FIRST) ===== */
+var API_BASE = 'http://localhost:8765';
+var SERVER_AVAILABLE = false;
+
+async function apiRequest(path, options) {
+  var res = await fetch(API_BASE + path, Object.assign({
+    headers: { 'Content-Type': 'application/json' }
+  }, options || {}));
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+function mergeSeedAndStored(seed, stored) {
+  var seedMap = {};
+  seed.invoices.forEach(function(i){ seedMap[i.id] = i; });
+  var localMap = {};
+  stored.invoices.forEach(function(i){ localMap[i.id] = i; });
+  
+  var invoices = seed.invoices.map(function(si) {
+    var li = localMap[si.id];
+    if (li) {
+      var merged = Object.assign({}, si);
+      ['payDate','payMethod','bankAmt','cashAmt','notes','status'].forEach(function(f){
+        if (li[f] !== undefined && li[f] !== null && li[f] !== '') merged[f] = li[f];
+      });
+      return merged;
+    }
+    return si;
+  });
+  
+  stored.invoices.forEach(function(li) {
+    if (!seedMap[li.id]) invoices.push(li);
+  });
+  
+  var idsAfterMerge = invoices.map(function(i){ return i.id || 0; });
+  return {
+    invoices: invoices,
+    nextId: Math.max(seed.nextId || 1, stored.nextId || 1, Math.max.apply(null, idsAfterMerge) + 1),
+    version: seed.version
+  };
+}
+
+async function load() {
   var seed = window.SEED_DATA;
   if (!seed || !seed.invoices || seed.invoices.length === 0) {
     notify('⚠️ seed data missing!', 'error');
     return;
   }
   SUPPLIER_DB = seed.suppliers || [];
+  
+  try {
+    var serverData = await apiRequest('/api/data');
+    if (serverData && serverData.invoices && serverData.invoices.length > 0) {
+      DB.invoices = serverData.invoices;
+      DB.nextId = serverData.nextId;
+      DB.version = serverData.version || seed.version;
+      SERVER_AVAILABLE = true;
+      console.log('Loaded from SQLite server: ' + DB.invoices.length + ' invoices');
+      localStorage.setItem('ivaV3_data', JSON.stringify(buildSnapshot()));
+    }
+  } catch(e) {
+    SERVER_AVAILABLE = false;
+    console.warn('Local server unavailable, using browser cache:', e.message);
+  }
+  
+  if (SERVER_AVAILABLE) {
+    var serverIds = DB.invoices.map(function(i){return i.id;});
+    var serverMaxId = Math.max.apply(null, serverIds);
+    if (DB.nextId <= serverMaxId) DB.nextId = serverMaxId + 1;
+    return;
+  }
   
   // Check localStorage
   var stored = null;
@@ -481,56 +544,19 @@ function load() {
   } catch(e) { stored = null; }
   
   if (stored && stored.invoices && stored.invoices.length > 0) {
-    // Compare versions
-    if (stored.version === seed.version) {
-      // Same version, use localStorage (user may have added invoices)
-      DB.invoices = stored.invoices;
-      DB.nextId = stored.nextId;
-      DB.version = stored.version;
-      console.log('Loaded from localStorage: ' + DB.invoices.length + ' invoices (v' + DB.version + ')');
-    } else {
-      // Different versions - SMART MERGE:
-      // 1. Start with seed as base
-      // 2. For existing invoices (by id), keep user's edits (payDate, payMethod, etc.)
-      // 3. Add any new invoices from localStorage that seed doesn't have
-      var seedMap = {};
-      seed.invoices.forEach(function(i){ seedMap[i.id] = i; });
-      var localMap = {};
-      stored.invoices.forEach(function(i){ localMap[i.id] = i; });
-      
-      // Start with all seed invoices
-      DB.invoices = seed.invoices.map(function(si) {
-        var li = localMap[si.id];
-        if (li) {
-          // Invoice exists in both - use seed data but preserve user edits
-          var merged = Object.assign({}, si);
-          // Fields that user can change: keep from localStorage
-          ['payDate','payMethod','bankAmt','cashAmt','notes'].forEach(function(f){
-            if (li[f] !== undefined && li[f] !== null && li[f] !== '') merged[f] = li[f];
-          });
-          if (li.payDate) merged.payDate = li.payDate;
-          return merged;
-        }
-        return si;
-      });
-      
-      // Add any invoices in localStorage that are NOT in seed (user-added)
-      stored.invoices.forEach(function(li) {
-        if (!seedMap[li.id]) DB.invoices.push(li);
-      });
-      
-      DB.nextId = Math.max(seed.nextId, stored.nextId);
-      DB.version = seed.version;
-      console.log('Smart merged: ' + DB.invoices.length + ' invoices (seed ' + seed.invoices.length + ' + user-added ' + (DB.invoices.length - seed.invoices.length) + ')');
-      save(); // Save merged data
-    }
+    var mergedData = mergeSeedAndStored(seed, stored);
+    DB.invoices = mergedData.invoices;
+    DB.nextId = mergedData.nextId;
+    DB.version = mergedData.version;
+    console.log('Merged seed + localStorage: ' + DB.invoices.length + ' invoices (seed ' + seed.invoices.length + ', local ' + stored.invoices.length + ')');
+    await save('loadMerge');
   } else {
     // No localStorage, use seed
     DB.invoices = seed.invoices;
     DB.nextId = seed.nextId;
     DB.version = seed.version;
     console.log('Loaded from seed: ' + DB.invoices.length + ' invoices (v' + DB.version + ')');
-    save();
+    await save();
   }
   
   // Integrity check
@@ -546,17 +572,62 @@ function load() {
   }
 }
 
-function save() {
-  DB.version = DB.version || (window.SEED_DATA ? window.SEED_DATA.version : 'unknown');
-  try {
-    localStorage.setItem('ivaV3_data', JSON.stringify({version: DB.version, nextId: DB.nextId, invoices: DB.invoices}));
-  } catch(e) {
-    notify('⚠️ 保存失败: localStorage已满', 'error');
-    return;
-  }
-  markClean();
+function buildSnapshot() {
+  return {
+    version: DB.version || (window.SEED_DATA ? window.SEED_DATA.version : 'unknown'),
+    nextId: DB.nextId,
+    invoices: DB.invoices,
+    savedAt: new Date().toISOString()
+  };
 }
 
+function writeSafetyBackups(snapshot, serialized) {
+  try {
+    localStorage.setItem('ivaV3_data_backup_latest', serialized);
+    var historyRaw = localStorage.getItem('ivaV3_backup_history');
+    var history = historyRaw ? JSON.parse(historyRaw) : [];
+    history.unshift({ savedAt: snapshot.savedAt, count: snapshot.invoices.length, data: snapshot });
+    history = history.slice(0, 3);
+    localStorage.setItem('ivaV3_backup_history', JSON.stringify(history));
+  } catch(e) {
+    console.warn('Safety backup skipped:', e);
+  }
+}
+
+async function save(reason) {
+  DB.version = DB.version || (window.SEED_DATA ? window.SEED_DATA.version : 'unknown');
+  var snapshot = buildSnapshot();
+  var serialized = JSON.stringify(snapshot);
+  try {
+    if (SERVER_AVAILABLE) {
+      var saved = await apiRequest('/api/save', { method: 'POST', body: serialized });
+      if (!saved.invoices || saved.invoices.length !== DB.invoices.length) {
+        throw new Error('server verification failed');
+      }
+      DB.invoices = saved.invoices;
+      DB.nextId = saved.nextId;
+      DB.version = saved.version;
+      snapshot = buildSnapshot();
+      serialized = JSON.stringify(snapshot);
+    }
+    localStorage.setItem('ivaV3_data', serialized);
+    var verify = JSON.parse(localStorage.getItem('ivaV3_data') || '{}');
+    if (!verify.invoices || verify.invoices.length !== DB.invoices.length || verify.nextId !== DB.nextId) {
+      throw new Error('write verification failed');
+    }
+    writeSafetyBackups(snapshot, serialized);
+  } catch(e) {
+    notify('Save failed: ' + e.message, 'error');
+    return false;
+  }
+  markClean();
+  return true;
+}
+
+function showExportReminder() {
+  var bar = document.getElementById('saveBar');
+  if (bar) bar.classList.add('show');
+}
 function markDirty() {
   isDirty = true;
   var b = document.getElementById('saveStatusBadge');
@@ -635,7 +706,7 @@ function calcExpense() {
 }
 
 /* ===== INVOICE CRUD ===== */
-function addInvoice(type) {
+async function addInvoice(type) {
   var isIncome = (type === 'income');
   var num = document.getElementById(isIncome?'in_num':'ex_num').value.trim();
   var date = document.getElementById(isIncome?'in_date':'ex_date').value;
@@ -676,8 +747,9 @@ function addInvoice(type) {
   };
   
   DB.invoices.push(inv);
-  save();
-  markDirty();
+  if (!await save('addInvoice')) { DB.invoices.pop(); DB.nextId--; return; }
+  showExportReminder();
+  try { localStorage.removeItem('ivaV3_form_draft'); } catch(e) {}
   notify('发票 ' + num + ' 已保存！', 'success');
   clearForm(type);
   refreshAll();
@@ -702,11 +774,12 @@ function clearForm(type) {
   }
 }
 
-function delInvoice(id) {
+async function delInvoice(id) {
   if (!confirm('确认删除此发票？')) return;
+  var before = DB.invoices.slice();
   DB.invoices = DB.invoices.filter(function(i){ return i.id !== id; });
-  save();
-  markDirty();
+  if (!await save('deleteInvoice')) { DB.invoices = before; return; }
+  showExportReminder();
   notify('已删除','info');
   refreshAll();
 }
@@ -749,16 +822,17 @@ function toggleModalPay() {
 
 function closeModal() { document.getElementById('payModal').classList.remove('show'); }
 
-function savePayment() {
+async function savePayment() {
   var id = parseInt(document.getElementById('payModalId').value);
   var inv = DB.invoices.find(function(i){return i.id===id;});
   if(!inv) return;
+  var before = Object.assign({}, inv);
   inv.payMethod = document.getElementById('payModalMethod').value;
   inv.bankAmt = parseFloat(document.getElementById('payModalBankAmt').value)||0;
   inv.cashAmt = parseFloat(document.getElementById('payModalCashAmt').value)||0;
   inv.payDate = document.getElementById('payModalDate').value;
-  save();
-  markDirty();
+  if (!await save('savePayment')) { Object.assign(inv, before); return; }
+  showExportReminder();
   closeModal();
   notify('付款已登记','success');
   refreshAll();
@@ -1028,23 +1102,47 @@ function exportData() {
   notify('备份已导出！','success');
 }
 
+function mergeInvoiceLists(current, incoming) {
+  var map = {};
+  function key(inv) {
+    return [inv.num || '', inv.date || '', inv.supplier || inv.client || '', Number(inv.total || 0).toFixed(2)].join('|').toLowerCase();
+  }
+  current.forEach(function(inv){ map[key(inv)] = inv; });
+  var added = 0;
+  incoming.forEach(function(inv){
+    var k = key(inv);
+    if (map[k]) {
+      Object.assign(map[k], inv, { id: map[k].id });
+    } else {
+      inv.id = inv.id || DB.nextId++;
+      current.push(inv);
+      map[k] = inv;
+      added++;
+    }
+  });
+  return added;
+}
+
 function importData(event) {
   var file = event.target.files[0];
   if(!file) return;
   var reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     try {
       var data = JSON.parse(e.target.result);
       if(data.invoices && data.invoices.length > 0) {
-        if(!confirm('导入将替换所有现有数据（'+DB.invoices.length+'条→'+data.invoices.length+'条）。确认？')) return;
-        DB.invoices = data.invoices;
-        DB.nextId = data.nextId || (Math.max.apply(null, data.invoices.map(function(i){return i.id;})) + 1);
-        DB.version = data.version || 'imported';
-        save();
+        if(!confirm('导入将合并备份和当前数据，不会清空当前发票。当前 '+DB.invoices.length+' 条，备份 '+data.invoices.length+' 条。继续？')) return;
+        var before = DB.invoices.slice();
+        var added = mergeInvoiceLists(DB.invoices, data.invoices);
+        var ids = DB.invoices.map(function(i){ return i.id || 0; });
+        DB.nextId = Math.max(DB.nextId || 1, data.nextId || 1, Math.max.apply(null, ids) + 1);
+        DB.version = window.SEED_DATA ? window.SEED_DATA.version : (data.version || DB.version || 'imported');
+        if (!await save('importData')) { DB.invoices = before; return; }
         refreshAll();
-        notify('已导入 '+data.invoices.length+' 条发票','success');
+        showExportReminder();
+        notify('导入完成，新增 '+added+' 条发票。','success');
       } else {
-        notify('文件中无发票数据','error');
+        notify('文件中没有发票数据','error');
       }
     } catch(err) {
       notify('导入失败: '+err.message,'error');
@@ -1053,7 +1151,6 @@ function importData(event) {
   reader.readAsText(file);
   event.target.value = '';
 }
-
 function importDataFromHint(event) { importData(event); closeImportHint(); }
 function closeImportHint() { document.getElementById('importHintModal').classList.remove('show'); }
 
@@ -1124,10 +1221,40 @@ function initSupplierAutocomplete() {
   }
 }
 
+function setupFormAutoBackup() {
+  var ids = ['in_num','in_date','in_due','in_client','in_nif','in_desc','in_base','in_iva','in_irpf','in_pay_method','in_bank_amt','in_cash_amt','in_pay_date','in_notes','in_pdf','ex_num','ex_date','ex_due','ex_supplier','ex_nif','ex_desc','ex_base','ex_iva','ex_pay_method','ex_bank_amt','ex_cash_amt','ex_pay_date','ex_notes','ex_pdf','ex_category'];
+  function collect() {
+    var draft = { savedAt: new Date().toISOString(), fields: {} };
+    ids.forEach(function(id){ var el = document.getElementById(id); if(el && el.value) draft.fields[id] = el.value; });
+    try { localStorage.setItem('ivaV3_form_draft', JSON.stringify(draft)); } catch(e) {}
+  }
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) {
+      el.addEventListener('input', collect);
+      el.addEventListener('change', collect);
+    }
+  });
+}
+
+function restoreFormDraft() {
+  try {
+    var raw = localStorage.getItem('ivaV3_form_draft');
+    if(!raw) return;
+    var draft = JSON.parse(raw);
+    if(!draft.fields || Object.keys(draft.fields).length === 0) return;
+    if(!confirm('Found an unfinished invoice draft from '+(draft.savedAt || '')+'. Restore it?')) return;
+    Object.keys(draft.fields).forEach(function(id){ var el = document.getElementById(id); if(el) el.value = draft.fields[id]; });
+    calcIncome();
+    calcExpense();
+  } catch(e) {}
+}
 /* ===== STARTUP ===== */
-document.addEventListener('DOMContentLoaded', function() {
-  load();
+document.addEventListener('DOMContentLoaded', async function() {
+  await load();
   initSupplierAutocomplete();
+  setupFormAutoBackup();
+  restoreFormDraft();
   refreshAll();
 });
 </script>
