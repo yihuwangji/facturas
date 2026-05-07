@@ -1,7 +1,7 @@
 
     var SEED_DATA = {
-  "version": "2026-05-07-v1",
-  "nextId": 359,
+  "version": "2026-05-07-v2",
+  "nextId": 360,
   "invoices": [
     {
       "id": 1,
@@ -8580,6 +8580,29 @@
       "payDate": "2026-05-06",
       "status": "paid",
       "notes": ""
+    },
+    {
+      "id": 359,
+      "type": "expense",
+      "num": "260084",
+      "date": "2026-05-05",
+      "due": "2026-05-05",
+      "supplier": "JOSE RAMON MAESTRE LILLO",
+      "nif": "48538506L",
+      "desc": "CHEMINE EXTRA LAMINADO 600gr (360u) + CHEMINE EXTRA RUFFY LAMINADO (360u)",
+      "base": 818.23,
+      "ivaRate": 21,
+      "ivaAmt": 171.83,
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "total": 990.06,
+      "payMethod": "bank",
+      "bankAmt": 990.06,
+      "cashAmt": 0,
+      "payDate": "2026-05-05",
+      "status": "paid",
+      "notes": "Pagado contado. Pronto pago -171.77€",
+      "pdfFile": ""
     }
   ],
   "suppliers": [
