@@ -1,7 +1,7 @@
 
     var SEED_DATA = {
-  "version": "2026-05-07-v2",
-  "nextId": 360,
+  "version": "2026-05-08-v1",
+  "nextId": 361,
   "invoices": [
     {
       "id": 1,
@@ -8603,6 +8603,29 @@
       "status": "paid",
       "notes": "Pagado contado. Pronto pago -171.77€",
       "pdfFile": ""
+    },
+    {
+      "id": 360,
+      "type": "expense",
+      "num": "2720828030",
+      "date": "2026-05-06",
+      "due": "2026-05-13",
+      "supplier": "COCA-COLA",
+      "nif": "B86561412",
+      "desc": "Monster Energy, Coca-Cola Zero, Fuze Tea varios",
+      "base": 5910.68,
+      "ivaRate": 21,
+      "ivaAmt": 1241.24,
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "total": 7151.92,
+      "payMethod": "",
+      "bankAmt": 0,
+      "cashAmt": 0,
+      "payDate": "",
+      "status": "pending",
+      "notes": "SEPA DOMI RECIBOS - vencimiento 13/05/2026",
+      "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/COCA-COLA_2720828030.pdf"
     }
   ],
   "suppliers": [
