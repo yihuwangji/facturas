@@ -216,6 +216,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 const cfg = window.ONLINE_CONFIG || {};
 const bucket = cfg.STORAGE_BUCKET || 'invoice-files';
 const savedLoginKey = 'facturas_saved_login_v1';
+const savedSessionKey = 'facturas_saved_session_v1';
 let sb = null;
 let user = null;
 let uploads = [];
@@ -232,20 +233,30 @@ function initClient() {
     $('configNotice').classList.remove('hide');
     return false;
   }
-  sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true,
+      storageKey:'facturas_supabase_session'
+    }
+  });
   return true;
 }
 
 async function init() {
   if (!initClient()) return;
   loadSavedLogin();
-  const session = await sb.auth.getSession();
+  let session = await sb.auth.getSession();
+  if (!session.data.session) session = await restoreSavedSession();
   user = session.data.session?.user || null;
+  if (session.data.session) saveSessionBackup(session.data.session);
   if (!user) await tryAutoLogin();
   renderAuth();
   if (user) await refreshAll();
   sb.auth.onAuthStateChange(async (_event, session) => {
     user = session?.user || null;
+    if (session) saveSessionBackup(session);
     renderAuth();
     if (user) await refreshAll();
   });
@@ -267,7 +278,7 @@ function loadSavedLogin() {
 }
 
 function rememberOrForgetLogin(email, password) {
-  if (email && password) localStorage.setItem(savedLoginKey, encodeSavedLogin(email, password));
+  if (email) localStorage.setItem(savedLoginKey, encodeSavedLogin(email, password || ''));
 }
 
 function updateSavedLoginFromForm() {
@@ -278,8 +289,34 @@ function updateSavedLoginFromForm() {
 
 function clearSavedLogin() {
   localStorage.removeItem(savedLoginKey);
+  localStorage.removeItem(savedSessionKey);
   if ($('passwordInput')) $('passwordInput').value = '';
   $('loginStatus').textContent = '已清除本机记住的密码。';
+}
+
+function saveSessionBackup(session) {
+  if (!session?.access_token || !session?.refresh_token) return;
+  localStorage.setItem(savedSessionKey, JSON.stringify({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_at: session.expires_at || 0,
+    email: session.user?.email || ''
+  }));
+  if (session.user?.email && $('emailInput')) $('emailInput').value = session.user.email;
+}
+
+async function restoreSavedSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(savedSessionKey) || 'null');
+    if (!saved?.access_token || !saved?.refresh_token) return { data:{ session:null } };
+    const res = await sb.auth.setSession({ access_token:saved.access_token, refresh_token:saved.refresh_token });
+    if (res.error) throw res.error;
+    if (res.data.session) saveSessionBackup(res.data.session);
+    return { data:{ session:res.data.session || null } };
+  } catch (_err) {
+    localStorage.removeItem(savedSessionKey);
+    return { data:{ session:null } };
+  }
 }
 
 async function tryAutoLogin() {
@@ -313,6 +350,7 @@ async function login() {
 async function sendOtpCode() {
   const email = $('emailInput').value.trim().toLowerCase();
   if (!email) return $('loginStatus').textContent = '请输入邮箱。';
+  localStorage.setItem(savedLoginKey, encodeSavedLogin(email, ''));
   $('loginStatus').textContent = '正在发送登录链接...';
   const res = await sb.auth.signInWithOtp({
     email,
@@ -324,6 +362,7 @@ async function sendOtpCode() {
 
 async function logoutApp() {
   await sb.auth.signOut();
+  localStorage.removeItem(savedSessionKey);
   loadSavedLogin();
   $('loginStatus').textContent = '已退出登录。下次用登录链接进入。';
 }
