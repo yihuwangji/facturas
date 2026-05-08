@@ -24,8 +24,6 @@ main{max-width:1280px;margin:0 auto;padding:16px}
 label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px;color:#344054}
 input,select,textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-size:14px;background:#fff;color:var(--text)}
 textarea{min-height:74px;resize:vertical}
-.remember{display:flex;align-items:center;gap:8px;margin-top:10px;color:#344054;font-size:13px}
-.remember input{width:auto}
 button{border:0;border-radius:6px;min-height:36px;padding:0 12px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}
 button.secondary{background:#475467}button.good{background:var(--green)}button.danger{background:var(--red)}button.light{background:#fff;color:var(--text);border:1px solid var(--line)}
 button:disabled{opacity:.6;cursor:not-allowed}
@@ -57,21 +55,13 @@ th{background:#f2f4f7;color:#475467;font-size:12px}.total-row{font-weight:800;ba
     <h2>登录</h2>
     <div class="grid">
       <div class="wide"><label>邮箱</label><input id="emailInput" type="email" autocomplete="username" placeholder="name@example.com"></div>
-      <div class="wide"><label>密码</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="至少 6 位"></div>
       <div class="wide"><label>邮箱验证码</label><input id="otpInput" inputmode="numeric" autocomplete="one-time-code" placeholder="邮箱收到的 6 位数字"></div>
     </div>
-    <label class="remember"><input id="rememberLogin" type="checkbox"> 记住登录，下次自动进入</label>
-    <p class="muted">建议只在自己的电脑使用。本机已经会尽量保持登录状态，勾选后会在此浏览器保存登录信息。</p>
     <div class="actions">
       <button id="otpSendBtn" class="good">发送验证码</button>
       <button id="otpVerifyBtn">验证码登录</button>
-      <button id="anonymousLoginBtn" class="secondary">免密码进入</button>
-      <button id="passwordLoginBtn">密码登录</button>
-      <button id="signupBtn" class="good">第一次注册</button>
-      <button id="resetPasswordBtn" class="secondary">设置/重置密码</button>
-      <button id="loginBtn" class="light">发送登录链接</button>
-      <button id="clearSavedLoginBtn" class="light">清除记住密码</button>
     </div>
+    <p class="muted">第一次也直接用验证码登录。登录后浏览器会自动保持会话，一般不需要每天重新登录。</p>
     <p id="loginStatus" class="muted"></p>
   </section>
 
@@ -275,26 +265,22 @@ function decodeSavedLogin(raw) {
 function loadSavedLogin() {
   const saved = decodeSavedLogin(localStorage.getItem(savedLoginKey) || '');
   if (!saved) return;
-  $('emailInput').value = saved.email || '';
-  $('passwordInput').value = saved.password || '';
-  $('rememberLogin').checked = !!saved.email && !!saved.password;
+  if ($('emailInput')) $('emailInput').value = saved.email || '';
 }
 
 function rememberOrForgetLogin(email, password) {
-  if ($('rememberLogin').checked) localStorage.setItem(savedLoginKey, encodeSavedLogin(email, password));
-  else localStorage.removeItem(savedLoginKey);
+  if (email && password) localStorage.setItem(savedLoginKey, encodeSavedLogin(email, password));
 }
 
 function updateSavedLoginFromForm() {
   const email = $('emailInput').value.trim().toLowerCase();
-  const password = $('passwordInput').value;
+  const password = $('passwordInput')?.value || '';
   rememberOrForgetLogin(email, password);
 }
 
 function clearSavedLogin() {
   localStorage.removeItem(savedLoginKey);
-  $('rememberLogin').checked = false;
-  $('passwordInput').value = '';
+  if ($('passwordInput')) $('passwordInput').value = '';
   $('loginStatus').textContent = '已清除本机记住的密码。';
 }
 
@@ -304,7 +290,8 @@ async function tryAutoLogin() {
   $('loginStatus').textContent = '正在自动登录...';
   const res = await sb.auth.signInWithPassword({ email:saved.email, password:saved.password });
   if (res.error) {
-    $('loginStatus').textContent = '自动登录失败，请点“密码登录”再试，或点“设置/重置密码”。';
+    localStorage.removeItem(savedLoginKey);
+    $('loginStatus').textContent = '自动登录失败，请用邮箱验证码登录。';
     return;
   }
   user = res.data.user || null;
@@ -331,7 +318,7 @@ async function sendOtpCode() {
   $('loginStatus').textContent = '正在发送验证码...';
   const res = await sb.auth.signInWithOtp({
     email,
-    options:{ shouldCreateUser:false, emailRedirectTo:location.href.split('#')[0] }
+    options:{ shouldCreateUser:true, emailRedirectTo:location.href.split('#')[0] }
   });
   if (res.error) $('loginStatus').textContent = friendlyAuthError(res.error.message);
   else $('loginStatus').textContent = '验证码已发送。请查看邮箱，把 6 位数字填到“邮箱验证码”。如果邮件里只有链接，也可以直接点链接登录。';
@@ -358,9 +345,8 @@ async function anonymousLogin() {
 
 async function passwordLogin() {
   const email = $('emailInput').value.trim().toLowerCase();
-  const password = $('passwordInput').value;
+  const password = $('passwordInput')?.value || '';
   if (!email || !password) return $('loginStatus').textContent = '请输入邮箱和密码。';
-  if ($('rememberLogin').checked) updateSavedLoginFromForm();
   $('loginStatus').textContent = '正在登录...';
   const res = await sb.auth.signInWithPassword({ email, password });
   if (res.error) $('loginStatus').textContent = friendlyAuthError(res.error.message);
@@ -394,13 +380,13 @@ async function resetPassword() {
 async function logoutApp() {
   await sb.auth.signOut();
   loadSavedLogin();
-  $('loginStatus').textContent = '已退出登录。记住的密码仍保留在本机。';
+  $('loginStatus').textContent = '已退出登录。下次用邮箱验证码进入。';
 }
 
 function friendlyAuthError(message) {
-  if (/invalid login credentials/i.test(message)) return '邮箱或密码不正确。第一次使用请点“第一次注册”；已有账号请点“设置/重置密码”。';
+  if (/invalid login credentials/i.test(message)) return '验证码不正确或已过期，请重新发送验证码。';
   if (/email not confirmed/i.test(message)) return '邮箱还没有确认，请先打开 Supabase 发来的确认邮件。';
-  if (/already registered/i.test(message)) return '这个邮箱已经注册过，请直接密码登录，或者重置密码。';
+  if (/already registered/i.test(message)) return '这个邮箱已经可以使用，请直接发送验证码登录。';
   return message;
 }
 
@@ -936,14 +922,8 @@ document.addEventListener('click', async (e) => {
     if (tabBtn) showView(tabBtn.dataset.view);
     const newTypeBtn = e.target.closest('[data-new-type]');
     if (newTypeBtn) openNewInvoice(newTypeBtn.dataset.newType);
-    if (e.target.id === 'loginBtn') await login();
     if (e.target.id === 'otpSendBtn') await sendOtpCode();
     if (e.target.id === 'otpVerifyBtn') await verifyOtpCode();
-    if (e.target.id === 'anonymousLoginBtn') await anonymousLogin();
-    if (e.target.id === 'passwordLoginBtn') await passwordLogin();
-    if (e.target.id === 'signupBtn') await signup();
-    if (e.target.id === 'resetPasswordBtn') await resetPassword();
-    if (e.target.id === 'clearSavedLoginBtn') clearSavedLogin();
     if (e.target.id === 'logoutBtn' || e.target.id === 'logoutBtn2') await logoutApp();
     if (e.target.id === 'uploadBtn') uploadFiles().catch(err => $('uploadStatus').textContent = err.message);
     if (e.target.id === 'importLocalBtn' || e.target.id === 'importLocalBtn2') importLocalInvoices().catch(err => $('uploadStatus').textContent = '导入失败: ' + err.message);
@@ -970,12 +950,10 @@ document.addEventListener('click', async (e) => {
 document.addEventListener('input', (e) => {
   if (e.target.id === 'filterSearch') renderInvoices();
   if (['editBase','editIvaRate','editIrpfRate'].includes(e.target.id)) recalcEditTotals();
-  if (['emailInput','passwordInput'].includes(e.target.id) && $('rememberLogin').checked) updateSavedLoginFromForm();
 });
 document.addEventListener('change', (e) => {
   if (['filterYear','filterMonth','filterType'].includes(e.target.id)) renderInvoices();
   if (['reportYear','reportQuarter'].includes(e.target.id)) renderReport();
-  if (e.target.id === 'rememberLogin') updateSavedLoginFromForm();
 });
 
 init().catch(e => { $('configNotice').classList.remove('hide'); $('configNotice').textContent = e.message; });
