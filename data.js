@@ -1,7 +1,7 @@
 
     var SEED_DATA = {
-  "version": "2026-05-08-v3",
-  "nextId": 362,
+  "version": "2026-05-08-v4",
+  "nextId": 363,
   "invoices": [
     {
       "id": 1,
@@ -8648,6 +8648,29 @@
       "payDate": "2026-05-08",
       "status": "paid",
       "notes": "Visita - pagado 08/05/2026",
+      "pdfFile": ""
+    },
+    {
+      "id": 362,
+      "type": "abono",
+      "num": "9206162",
+      "date": "2026-05-04",
+      "due": "2026-06-03",
+      "supplier": "PRINCESALISIMO S.L.U.",
+      "nif": "B46350534",
+      "desc": "ABONO rotura -对应发票 9205815 (24/04/26)",
+      "base": -3.40,
+      "ivaRate": 21,
+      "ivaAmt": -0.71,
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "total": -4.11,
+      "payMethod": "transferencia",
+      "bankAmt": 0,
+      "cashAmt": 0,
+      "payDate": "",
+      "status": "pending",
+      "notes": "ABONO rotura - vencimiento 03/06/2026",
       "pdfFile": ""
     }
   ],
