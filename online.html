@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>云端发票资料库</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="online-config.js"></script>
+<style>
+:root{--bg:#f6f7fb;--panel:#fff;--text:#172033;--muted:#667085;--line:#d9dee8;--brand:#0f766e;--blue:#2563eb;--green:#15803d;--red:#b42318;--amber:#b54708}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Microsoft YaHei",sans-serif}
+header{min-height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;position:sticky;top:0;z-index:10}
+header strong{font-size:18px}
+main{max-width:1280px;margin:0 auto;padding:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px}
+.notice{background:#fff7e6;border:1px solid #fedf89;color:#7a2e0e;border-radius:8px;padding:12px;margin-bottom:12px}
+.tabs{display:flex;gap:8px;margin-bottom:14px;overflow:auto;padding-bottom:2px}
+.tab{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:6px;min-width:84px;height:38px;padding:0 14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.tab.active{background:var(--brand);border-color:var(--brand);color:#fff}
+.hide{display:none!important}
+.muted{color:var(--muted);font-size:13px}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px;color:#344054}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-size:14px;background:#fff;color:var(--text)}
+textarea{min-height:74px;resize:vertical}
+button{border:0;border-radius:6px;min-height:36px;padding:0 12px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}
+button.secondary{background:#475467}button.good{background:var(--green)}button.danger{background:var(--red)}button.light{background:#fff;color:var(--text);border:1px solid var(--line)}
+button:disabled{opacity:.6;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.wide{grid-column:span 2}.full{grid-column:1/-1}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px}.card .label{color:var(--muted);font-size:12px;font-weight:700}.card .value{font-size:24px;font-weight:800;margin-top:6px}
+.filters{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+.item{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:#fff}
+.item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}.name{font-weight:800}.raw{white-space:pre-wrap;max-height:180px;overflow:auto;background:#fbfcfe;border:1px solid var(--line);border-radius:6px;padding:10px;font-size:12px;color:#344054}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--line);padding:8px;font-size:13px;text-align:left;vertical-align:top}
+th{background:#f2f4f7;color:#475467;font-size:12px}.total-row{font-weight:800;background:#f8fafc}
+.table-wrap{overflow:auto}.badge{display:inline-flex;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:700;background:#eef4ff;color:#175cd3}.badge.warn{background:#fff7e6;color:var(--amber)}.badge.ok{background:#ecfdf3;color:#027a48}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}.modal-box{background:#fff;border-radius:8px;max-width:900px;width:100%;max-height:90vh;overflow:auto;padding:16px}
+@media(max-width:900px){.grid,.cards,.filters{grid-template-columns:1fr}.wide{grid-column:auto}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <strong>云端发票资料库</strong>
+  <span id="userEmail" class="muted">未登录</span>
+</header>
+
+<main>
+  <div id="configNotice" class="notice hide">缺少 online-config.js。请先配置 Supabase URL 和 key。</div>
+
+  <section id="loginPanel" class="panel">
+    <h2>登录</h2>
+    <div class="grid">
+      <div class="wide"><label>邮箱</label><input id="emailInput" type="email" placeholder="name@example.com"></div>
+      <div class="wide"><label>密码</label><input id="passwordInput" type="password" placeholder="至少 6 位"></div>
+    </div>
+    <div class="actions">
+      <button id="passwordLoginBtn">密码登录</button>
+      <button id="signupBtn" class="good">第一次注册</button>
+      <button id="resetPasswordBtn" class="secondary">设置/重置密码</button>
+      <button id="loginBtn" class="light">发送登录链接</button>
+    </div>
+    <p id="loginStatus" class="muted"></p>
+  </section>
+
+  <section id="appPanel" class="hide">
+    <div class="tabs">
+      <button class="tab active" data-view="dashboardView">概览</button>
+      <button class="tab" data-view="uploadView">上传识别</button>
+      <button class="tab" data-view="manualView">手工新增</button>
+      <button class="tab" data-view="pendingView">待确认 <span id="pendingCount">0</span></button>
+      <button class="tab" data-view="libraryView">发票库</button>
+      <button class="tab" data-view="paymentsView">付款</button>
+      <button class="tab" data-view="reportView">IVA申报</button>
+      <button class="tab" data-view="toolsView">工具</button>
+    </div>
+
+    <div id="dashboardView" class="view">
+      <div class="cards">
+        <div class="card"><div class="label">发票数量</div><div class="value" id="dashCount">0</div></div>
+        <div class="card"><div class="label">收入 Total</div><div class="value" id="dashIncome">€0.00</div></div>
+        <div class="card"><div class="label">支出 Total</div><div class="value" id="dashExpense">€0.00</div></div>
+        <div class="card"><div class="label">IVA 净额</div><div class="value" id="dashIva">€0.00</div></div>
+      </div>
+      <div class="panel">
+        <h2>最近发票</h2>
+        <div class="table-wrap"><table><thead><tr><th>日期</th><th>发票号</th><th>对象</th><th>Total</th><th>付款</th></tr></thead><tbody id="recentRows"></tbody></table></div>
+      </div>
+      <div class="panel">
+        <h2>未收未付提醒</h2>
+        <div class="cards" id="unpaidSummary"></div>
+        <div class="table-wrap"><table><thead><tr><th>类型</th><th>到期</th><th>发票号</th><th>对象</th><th>Total</th><th>操作</th></tr></thead><tbody id="unpaidRows"></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="uploadView" class="panel view hide">
+      <h2>上传文件</h2>
+      <p class="muted">支持 PDF、扫描 PDF、照片、截图。上传后先进入“待确认”，确认后进入正式发票库。</p>
+      <input id="fileInput" type="file" multiple accept="application/pdf,image/*">
+      <div class="actions">
+        <button id="uploadBtn">上传并识别</button>
+        <button id="importLocalBtn" class="good">导入本地历史发票</button>
+        <button id="refreshBtn" class="secondary">刷新</button>
+        <button id="logoutBtn" class="secondary">退出</button>
+      </div>
+      <p id="uploadStatus" class="muted"></p>
+      <div id="lastText" class="raw hide"></div>
+    </div>
+
+    <div id="pendingView" class="view hide">
+      <div id="pendingList"></div>
+    </div>
+
+    <div id="manualView" class="view hide">
+      <div class="panel">
+        <h2>手工新增发票</h2>
+        <p class="muted">保留旧版手工输入方式：收入、支出、退款都可以直接新增，保存后立即进入云端发票库。</p>
+        <div class="actions">
+          <button class="good" data-new-type="income">新增收入发票</button>
+          <button class="danger" data-new-type="expense">新增支出发票</button>
+          <button class="secondary" data-new-type="abono">新增退款 ABONO</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="libraryView" class="view hide">
+      <div class="panel">
+        <h2>发票库</h2>
+        <div class="filters">
+          <div><label>年份</label><select id="filterYear"></select></div>
+          <div><label>月份</label><select id="filterMonth"><option value="all">全部</option><option value="1">1月</option><option value="2">2月</option><option value="3">3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select></div>
+          <div><label>类型</label><select id="filterType"><option value="all">全部</option><option value="income">收入</option><option value="expense">支出</option><option value="abono">退款</option><option value="sale">销售</option></select></div>
+          <div class="wide"><label>搜索</label><input id="filterSearch" placeholder="供应商、客户、发票号、NIF"></div>
+          <div><label>&nbsp;</label><button id="clearFiltersBtn" class="secondary">清除</button></div>
+        </div>
+        <div class="actions">
+          <button id="exportCsvBtn" class="light">导出 CSV</button>
+          <button id="exportJsonBtn" class="light">导出 JSON</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>日期</th><th>类型</th><th>发票号</th><th>对象</th><th>NIF</th><th>Base</th><th>IVA</th><th>Total</th><th>付款</th><th>操作</th></tr></thead><tbody id="invoiceRows"></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="paymentsView" class="view hide">
+      <div class="panel">
+        <h2>付款汇总</h2>
+        <div id="paymentSummary" class="cards"></div>
+        <div class="table-wrap"><table><thead><tr><th>日期</th><th>发票号</th><th>对象</th><th>Total</th><th>付款日期</th><th>方式</th><th>操作</th></tr></thead><tbody id="paymentRows"></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="reportView" class="view hide">
+      <div class="panel">
+        <h2>IVA申报</h2>
+        <div class="filters">
+          <div><label>年份</label><select id="reportYear"></select></div>
+          <div><label>季度</label><select id="reportQuarter"><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option><option value="4">T4</option></select></div>
+          <div><label>&nbsp;</label><button id="renderReportBtn">生成报表</button></div>
+          <div><label>&nbsp;</label><button id="printReportBtn" class="light">打印</button></div>
+        </div>
+        <div id="reportContent"></div>
+      </div>
+    </div>
+
+    <div id="toolsView" class="view hide">
+      <div class="panel">
+        <h2>工具</h2>
+        <div class="actions">
+          <button id="importLocalBtn2" class="good">导入本地历史发票</button>
+          <button id="refreshBtn2" class="secondary">刷新云端数据</button>
+          <button id="logoutBtn2" class="secondary">退出登录</button>
+        </div>
+        <p class="muted">新功能：云端导入、AI识别、待确认、CSV/JSON导出、发票编辑、付款登记、IVA季度报表。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="editModal" class="modal hide">
+  <div class="modal-box">
+    <h2 id="editTitle">编辑发票</h2>
+    <input type="hidden" id="editId">
+    <div class="grid">
+      <div><label>类型</label><select id="editType"><option value="expense">支出</option><option value="income">收入</option><option value="abono">退款</option><option value="sale">销售</option></select></div>
+      <div><label>发票号</label><input id="editNum"></div>
+      <div><label>日期</label><input id="editDate" type="date"></div>
+      <div><label>到期日期</label><input id="editDue" type="date"></div>
+      <div><label>付款日期</label><input id="editPayDate" type="date"></div>
+      <div class="wide"><label>供应商</label><input id="editSupplier"></div>
+      <div class="wide"><label>客户</label><input id="editClient"></div>
+      <div><label>NIF/CIF</label><input id="editNif"></div>
+      <div><label>Base</label><input id="editBase" type="number" step="0.01"></div>
+      <div><label>IVA %</label><input id="editIvaRate" type="number" step="0.01"></div>
+      <div><label>IVA金额</label><input id="editIvaAmount" type="number" step="0.01"></div>
+      <div><label>IRPF %</label><input id="editIrpfRate" type="number" step="0.01"></div>
+      <div><label>IRPF金额</label><input id="editIrpfAmount" type="number" step="0.01"></div>
+      <div><label>Total</label><input id="editTotal" type="number" step="0.01"></div>
+      <div><label>付款方式</label><input id="editPayMethod"></div>
+      <div><label>银行金额</label><input id="editBankAmount" type="number" step="0.01"></div>
+      <div><label>现金金额</label><input id="editCashAmount" type="number" step="0.01"></div>
+      <div class="full"><label>说明</label><textarea id="editDescription"></textarea></div>
+      <div class="full"><label>备注</label><textarea id="editNotes"></textarea></div>
+    </div>
+    <div class="actions">
+      <button id="saveEditBtn" class="good">保存</button>
+      <button id="deleteInvoiceBtn" class="danger">删除</button>
+      <button id="closeEditBtn" class="secondary">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+
+const cfg = window.ONLINE_CONFIG || {};
+const bucket = cfg.STORAGE_BUCKET || 'invoice-files';
+let sb = null;
+let user = null;
+let uploads = [];
+let invoices = [];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const round2 = (n) => Math.round(Number(n || 0) * 100) / 100;
+const money = (n) => '€' + Number(n || 0).toFixed(2);
+const emptyToNull = (value) => value && String(value).trim() ? value : null;
+
+function initClient() {
+  if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY || !window.supabase) {
+    $('configNotice').classList.remove('hide');
+    return false;
+  }
+  sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  return true;
+}
+
+async function init() {
+  if (!initClient()) return;
+  const session = await sb.auth.getSession();
+  user = session.data.session?.user || null;
+  renderAuth();
+  if (user) await refreshAll();
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    user = session?.user || null;
+    renderAuth();
+    if (user) await refreshAll();
+  });
+}
+
+function renderAuth() {
+  $('loginPanel').classList.toggle('hide', !!user);
+  $('appPanel').classList.toggle('hide', !user);
+  $('userEmail').textContent = user ? user.email : '未登录';
+}
+
+async function login() {
+  const email = $('emailInput').value.trim().toLowerCase();
+  if (!email) return $('loginStatus').textContent = '请输入邮箱。';
+  $('loginStatus').textContent = '正在发送登录链接...';
+  const res = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href.split('#')[0] } });
+  $('loginStatus').textContent = res.error ? friendlyAuthError(res.error.message) : '登录链接已发送，请打开邮箱。';
+}
+
+async function passwordLogin() {
+  const email = $('emailInput').value.trim().toLowerCase();
+  const password = $('passwordInput').value;
+  if (!email || !password) return $('loginStatus').textContent = '请输入邮箱和密码。';
+  $('loginStatus').textContent = '正在登录...';
+  const res = await sb.auth.signInWithPassword({ email, password });
+  $('loginStatus').textContent = res.error ? friendlyAuthError(res.error.message) : '登录成功。';
+}
+
+async function signup() {
+  const email = $('emailInput').value.trim().toLowerCase();
+  const password = $('passwordInput').value;
+  if (!email || password.length < 6) return $('loginStatus').textContent = '请输入邮箱和至少 6 位密码。';
+  $('loginStatus').textContent = '正在注册...';
+  const res = await sb.auth.signUp({ email, password, options:{ emailRedirectTo: location.href.split('#')[0] } });
+  if (res.error) $('loginStatus').textContent = friendlyAuthError(res.error.message);
+  else $('loginStatus').textContent = res.data.session ? '注册并登录成功。' : '注册成功。如果需要邮箱确认，请打开邮件确认一次。';
+}
+
+async function resetPassword() {
+  const email = $('emailInput').value.trim().toLowerCase();
+  if (!email) return $('loginStatus').textContent = '请输入邮箱。';
+  $('loginStatus').textContent = '正在发送设置密码邮件...';
+  const res = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0] });
+  $('loginStatus').textContent = res.error ? friendlyAuthError(res.error.message) : '已发送设置/重置密码邮件，请打开邮箱。';
+}
+
+function friendlyAuthError(message) {
+  if (/invalid login credentials/i.test(message)) return '邮箱或密码不正确。第一次使用请点“第一次注册”；已有账号请点“设置/重置密码”。';
+  if (/email not confirmed/i.test(message)) return '邮箱还没有确认，请先打开 Supabase 发来的确认邮件。';
+  if (/already registered/i.test(message)) return '这个邮箱已经注册过，请直接密码登录，或者重置密码。';
+  return message;
+}
+
+async function refreshAll() {
+  const [u, i] = await Promise.all([
+    sb.from('invoice_uploads').select('*').eq('status','pending').order('created_at',{ascending:false}),
+    sb.from('invoices_cloud').select('*').order('date',{ascending:false}).limit(2000)
+  ]);
+  if (u.error) throw u.error;
+  if (i.error) throw i.error;
+  uploads = u.data || [];
+  invoices = i.data || [];
+  $('pendingCount').textContent = uploads.length;
+  renderYears();
+  renderDashboard();
+  renderPending();
+  renderInvoices();
+  renderPayments();
+  renderReport();
+}
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hide'));
+  $(id).classList.remove('hide');
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === id));
+}
+
+function isIncome(inv) { return inv.type === 'income' || inv.type === 'sale'; }
+function isExpense(inv) { return inv.type === 'expense' || inv.type === 'abono'; }
+function invoiceDate(inv) { return inv.date || inv.created_at || ''; }
+
+function renderYears() {
+  const years = Array.from(new Set(invoices.map(i => String(invoiceDate(i)).slice(0,4)).filter(Boolean))).sort().reverse();
+  const options = '<option value="all">全部</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+  if ($('filterYear')) { const v = $('filterYear').value || 'all'; $('filterYear').innerHTML = options; $('filterYear').value = years.includes(v) ? v : 'all'; }
+  if ($('reportYear')) { const v = $('reportYear').value || String(new Date().getFullYear()); $('reportYear').innerHTML = (years.length ? years : [String(new Date().getFullYear())]).map(y => `<option value="${y}">${y}</option>`).join(''); $('reportYear').value = years.includes(v) ? v : $('reportYear').options[0].value; }
+}
+
+function filteredInvoices() {
+  const y = $('filterYear')?.value || 'all';
+  const m = $('filterMonth')?.value || 'all';
+  const t = $('filterType')?.value || 'all';
+  const q = ($('filterSearch')?.value || '').trim().toLowerCase();
+  return invoices.filter(inv => {
+    const d = invoiceDate(inv);
+    if (y !== 'all' && String(d).slice(0,4) !== y) return false;
+    if (m !== 'all' && Number(String(d).slice(5,7)) !== Number(m)) return false;
+    if (t !== 'all' && inv.type !== t) return false;
+    if (q) {
+      const hay = [inv.num, inv.supplier, inv.client, inv.nif, inv.description].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderDashboard() {
+  const income = invoices.filter(isIncome);
+  const expense = invoices.filter(isExpense);
+  const inTotal = income.reduce((s,i) => s + Number(i.total || 0), 0);
+  const outTotal = expense.reduce((s,i) => s + Number(i.total || 0), 0);
+  const ivaIn = income.reduce((s,i) => s + Number(i.iva_amount || 0), 0);
+  const ivaOut = expense.reduce((s,i) => s + Number(i.iva_amount || 0), 0);
+  $('dashCount').textContent = invoices.length;
+  $('dashIncome').textContent = money(inTotal);
+  $('dashExpense').textContent = money(outTotal);
+  $('dashIva').textContent = money(ivaIn - ivaOut);
+  $('recentRows').innerHTML = invoices.slice(0, 10).map(i => `<tr><td>${esc(i.date)}</td><td>${esc(i.num)}</td><td>${esc(i.supplier || i.client)}</td><td>${money(i.total)}</td><td>${esc(i.pay_date || i.pay_method || '')}</td></tr>`).join('');
+  const unpaidIncome = income.filter(i => !i.pay_date && !i.pay_method);
+  const unpaidExpense = expense.filter(i => !i.pay_date && !i.pay_method);
+  $('unpaidSummary').innerHTML = `<div class="card"><div class="label">未收款发票</div><div class="value">${unpaidIncome.length}</div></div><div class="card"><div class="label">未付款支出</div><div class="value">${unpaidExpense.length}</div></div><div class="card"><div class="label">未收金额</div><div class="value">${money(unpaidIncome.reduce((s,i) => s + Number(i.total || 0), 0))}</div></div><div class="card"><div class="label">未付金额</div><div class="value">${money(unpaidExpense.reduce((s,i) => s + Number(i.total || 0), 0))}</div></div>`;
+  const unpaidRows = unpaidIncome.concat(unpaidExpense).sort((a,b) => String(a.due || a.date || '').localeCompare(String(b.due || b.date || '')));
+  $('unpaidRows').innerHTML = unpaidRows.length ? unpaidRows.slice(0, 20).map(i => `<tr><td>${esc(i.type)}</td><td>${esc(i.due || i.date || '')}</td><td>${esc(i.num)}</td><td>${esc(i.supplier || i.client)}</td><td>${money(i.total)}</td><td><button class="light" data-edit="${i.id}">登记付款</button></td></tr>`).join('') : '<tr><td colspan="6">没有未收未付发票。</td></tr>';
+}
+
+async function uploadFiles() {
+  const files = Array.from($('fileInput').files || []);
+  if (!files.length) return $('uploadStatus').textContent = '请选择文件。';
+  for (let i = 0; i < files.length; i++) await processFile(files[i], i + 1, files.length);
+  $('fileInput').value = '';
+  await refreshAll();
+  showView('pendingView');
+}
+
+async function processFile(file, index, total) {
+  $('uploadStatus').textContent = `正在处理 ${index}/${total}: ${file.name}`;
+  const text = await extractText(file);
+  const fallback = parseInvoiceText(text, file.name);
+  const parsed = await aiParseFile(file, text, fallback);
+  const filePath = `${user.id}/${new Date().toISOString().slice(0,10)}/${Date.now()}-${safeName(file.name)}`;
+  const up = await sb.storage.from(bucket).upload(filePath, file, { contentType:file.type, upsert:false });
+  if (up.error) throw up.error;
+  const ins = await sb.from('invoice_uploads').insert({ user_id:user.id, file_name:file.name, file_path:filePath, mime_type:file.type, extracted_text:text, parsed_data:parsed, status:'pending' });
+  if (ins.error) throw ins.error;
+  $('lastText').classList.remove('hide');
+  $('lastText').textContent = text.slice(0, 2500);
+}
+
+async function aiParseFile(file, ocrText, fallback) {
+  try {
+    $('uploadStatus').textContent = 'AI正在读取发票...';
+    const base64 = await fileToBase64(file);
+    const res = await fetch('/api/ai-parse', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body:JSON.stringify({ fileName:file.name, mimeType:file.type || guessMime(file.name), base64, ocrText })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.parsed) throw new Error(data.error || 'AI解析失败');
+    $('uploadStatus').textContent = 'AI识别完成，请确认。';
+    return Object.assign({}, fallback, data.parsed, { notes:data.parsed.notes || 'AI自动识别，请人工核对' });
+  } catch (err) {
+    $('uploadStatus').textContent = 'AI不可用，已使用普通OCR: ' + err.message;
+    return fallback;
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function guessMime(name) {
+  const lower = name.toLowerCase();
+  if (lower.endsWith('.pdf')) return 'application/pdf';
+  if (lower.endsWith('.png')) return 'image/png';
+  return 'image/jpeg';
+}
+
+function safeName(name) { return name.normalize('NFKD').replace(/[^\w.\-]+/g, '_').slice(-120); }
+
+async function extractText(file) {
+  if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) return extractPdf(file);
+  const image = await preprocessImage(file);
+  const res = await Tesseract.recognize(image, 'spa+eng', { logger:m => { if (m.status === 'recognizing text') $('uploadStatus').textContent = `OCR ${Math.round(m.progress*100)}%`; } });
+  return res.data.text || '';
+}
+
+async function preprocessImage(file) {
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; });
+  const scale = Math.min(3, Math.max(1.5, 1800 / Math.max(img.width, img.height)));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < image.data.length; i += 4) {
+    const gray = image.data[i] * 0.299 + image.data[i + 1] * 0.587 + image.data[i + 2] * 0.114;
+    const v = gray > 172 ? 255 : gray < 105 ? 0 : gray * 1.35;
+    image.data[i] = image.data[i + 1] = image.data[i + 2] = v;
+  }
+  ctx.putImageData(image, 0, 0);
+  URL.revokeObjectURL(img.src);
+  return canvas;
+}
+
+async function extractPdf(file) {
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  let text = '';
+  for (let p = 1; p <= Math.min(pdf.numPages, 4); p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    text += '\n' + pageText;
+    if (pageText.trim().length < 80) {
+      const viewport = page.getViewport({ scale: 1.7 });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext:canvas.getContext('2d'), viewport }).promise;
+      const res = await Tesseract.recognize(canvas, 'spa+eng');
+      text += '\n' + (res.data.text || '');
+    }
+  }
+  return text.trim();
+}
+
+function parseInvoiceText(text, filename) {
+  const clean = text.replace(/\s+/g, ' ');
+  const hints = parseFilenameHints(filename);
+  const date = findDate(clean);
+  const total = findMoneyNear(clean, /(total|importe total|total factura|a pagar)/i);
+  const iva = findMoneyNear(clean, /(iva|cuota iva|i\.v\.a)/i);
+  let base = findMoneyNear(clean, /(base imponible|base)/i);
+  if (!base && total && iva) base = round2(total - iva);
+  const rate = findRate(clean) || (iva && base ? round2(iva / base * 100) : 21);
+  const nif = (clean.match(/\b([A-Z]\d{7,8}[A-Z0-9]?|\d{8}[A-Z]|[A-Z]\d{7}[A-Z])\b/i) || [,''])[1].toUpperCase();
+  const foundNum = findInvoiceNumber(clean);
+  const supplier = findSupplier(text);
+  return {
+    type:'expense',
+    num:isGoodInvoiceNumber(foundNum) ? foundNum : (hints.num || filename.replace(/\.[^.]+$/, '')),
+    date,
+    due:date,
+    supplier:isGoodSupplier(supplier) ? supplier : hints.supplier,
+    client:'',
+    nif,
+    description:'',
+    base:base || 0,
+    iva_rate:rate,
+    iva_amount:iva || (base ? round2(base * rate / 100) : 0),
+    irpf_rate:0,
+    irpf_amount:0,
+    total:total || (base ? round2(base + base * rate / 100) : 0),
+    pay_method:'',
+    pay_date:'',
+    bank_amount:0,
+    cash_amount:0,
+    notes:'OCR自动识别，请人工核对'
+  };
+}
+
+function parseFilenameHints(filename) {
+  const base = filename.replace(/\.[^.]+$/, '');
+  const parts = base.split(/[_\s]+/).filter(Boolean);
+  const num = (base.match(/[A-Z]?\d{2,4}[-/]\d{2,4}[-/]\d{2,6}/i) || base.match(/[A-Z]{1,4}\d{2,}[-/]\d{2,}/i) || [''])[0];
+  const supplier = parts.length > 1 ? parts[0].replace(/[-_]+/g, ' ') : '';
+  return { num, supplier };
+}
+
+function isGoodInvoiceNumber(num) { return !!num && num.length >= 4 && /\d/.test(num) && !/^(ran|nro|num|fecha)$/i.test(num); }
+function isGoodSupplier(name) { return !!name && name.length >= 4 && !/[=\[\]{}]{2,}/.test(name) && !/^\d/.test(name); }
+function parseMoney(s) {
+  let v = String(s || '').replace(/[^\d,.\-]/g, '');
+  if (v.includes(',') && v.lastIndexOf(',') > v.lastIndexOf('.')) v = v.replace(/\./g, '').replace(',', '.');
+  return round2(parseFloat(v) || 0);
+}
+function findMoneyNear(text, re) {
+  const m = text.match(new RegExp(re.source + '.{0,80}?(-?\\d{1,3}(?:[.,]\\d{3})*[.,]\\d{2}|-?\\d+[.,]\\d{2})','i'));
+  return m ? parseMoney(m[1]) : 0;
+}
+function findRate(text) { const m = text.match(/\b(21|10|4|0)\s*%\s*(?:iva)?/i); return m ? Number(m[1]) : 21; }
+function findDate(text) {
+  const m = text.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](20\d{2}|\d{2})\b/);
+  if (!m) return '';
+  const y = m[3].length === 2 ? '20' + m[3] : m[3];
+  return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+}
+function findInvoiceNumber(text) {
+  const m = text.match(/(?:factura|invoice|fra\.?|num\.?|numero|nº|no\.?)\s*[:#\-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/i);
+  return m ? m[1] : '';
+}
+function findSupplier(text) {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  return (lines.find(l => /[A-ZÁÉÍÓÚÑ]{3,}/i.test(l) && !/factura|invoice|fecha|date/i.test(l)) || '').slice(0,90);
+}
+
+function renderPending() {
+  $('pendingList').innerHTML = uploads.length ? uploads.map(renderPendingItem).join('') : '<div class="panel">没有待确认文件。</div>';
+}
+function field(name,label,value,type='text',wide='') {
+  return `<div class="${wide}"><label>${label}</label><input data-field="${name}" type="${type}" step="0.01" value="${esc(value ?? '')}"></div>`;
+}
+function renderPendingItem(u) {
+  const p = u.parsed_data || {};
+  return `<div class="item" data-id="${u.id}">
+    <div class="item-head"><div><div class="name">${esc(u.file_name)}</div><div class="muted">${esc(u.created_at)}</div></div><span class="badge warn">待确认</span></div>
+    <div class="grid">${field('num','发票号',p.num)}${field('date','日期',p.date,'date')}${field('supplier','供应商',p.supplier,'text','wide')}${field('nif','NIF/CIF',p.nif)}${field('base','Base',p.base,'number')}${field('iva_rate','IVA %',p.iva_rate,'number')}${field('iva_amount','IVA 金额',p.iva_amount,'number')}${field('total','Total',p.total,'number')}${field('description','说明',p.description,'text','wide')}${field('pay_date','付款日期',p.pay_date,'date')}${field('pay_method','付款方式',p.pay_method)}</div>
+    <div class="raw">${esc((u.extracted_text || '').slice(0,1800))}</div>
+    <div class="actions"><button class="good" data-confirm="${u.id}">确认入库</button><button class="secondary" data-ai="${u.id}">AI重新识别</button><button class="light" data-open="${u.file_path}">原件</button><button class="danger" data-ignore="${u.id}">忽略</button></div>
+  </div>`;
+}
+
+async function reparseUpload(id) {
+  const u = uploads.find(x => x.id === id);
+  if (!u) return;
+  const btn = document.querySelector(`[data-ai="${id}"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'AI识别中...'; }
+  try {
+    const signed = await sb.storage.from(bucket).createSignedUrl(u.file_path, 300);
+    if (signed.error) throw signed.error;
+    const fileRes = await fetch(signed.data.signedUrl);
+    const blob = await fileRes.blob();
+    const file = new File([blob], u.file_name, { type:u.mime_type || blob.type || guessMime(u.file_name) });
+    const parsed = await aiParseFile(file, u.extracted_text || '', u.parsed_data || {});
+    const upd = await sb.from('invoice_uploads').update({ parsed_data:parsed }).eq('id', id);
+    if (upd.error) throw upd.error;
+    await refreshAll();
+  } catch (err) {
+    alert('AI重新识别失败: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'AI重新识别'; }
+  }
+}
+
+async function confirmUpload(id) {
+  const u = uploads.find(x => x.id === id);
+  const box = document.querySelector(`[data-id="${id}"]`);
+  const btn = box.querySelector(`[data-confirm="${id}"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '保存中...'; }
+  const data = {};
+  box.querySelectorAll('[data-field]').forEach(el => data[el.dataset.field] = el.value);
+  ['base','iva_rate','iva_amount','total'].forEach(k => data[k] = parseMoney(data[k]));
+  data.date = emptyToNull(data.date);
+  data.due = emptyToNull(data.due);
+  data.pay_date = emptyToNull(data.pay_date);
+  data.num = (data.num || u.file_name.replace(/\.[^.]+$/, '')).trim();
+  const ins = await sb.from('invoices_cloud').insert(Object.assign({ user_id:user.id, upload_id:id, file_path:u.file_path, type:'expense' }, data));
+  if (ins.error) { if (btn) { btn.disabled = false; btn.textContent = '确认入库'; } return alert('保存失败: ' + ins.error.message); }
+  const upd = await sb.from('invoice_uploads').update({ status:'confirmed', parsed_data:data }).eq('id', id);
+  if (upd.error) { if (btn) { btn.disabled = false; btn.textContent = '确认入库'; } return alert('更新上传状态失败: ' + upd.error.message); }
+  await refreshAll();
+}
+
+async function ignoreUpload(id) {
+  const res = await sb.from('invoice_uploads').update({ status:'ignored' }).eq('id', id);
+  if (res.error) return alert(res.error.message);
+  await refreshAll();
+}
+
+async function openFile(filePath) {
+  if (!filePath) return;
+  if (/^https?:\/\//i.test(filePath)) { window.open(filePath, '_blank'); return; }
+  const res = await sb.storage.from(bucket).createSignedUrl(filePath, 300);
+  if (res.error) return alert(res.error.message);
+  window.open(res.data.signedUrl, '_blank');
+}
+
+function renderInvoices() {
+  const list = filteredInvoices();
+  $('invoiceRows').innerHTML = list.length ? list.map(i => `<tr><td>${esc(i.date)}</td><td>${esc(i.type)}</td><td>${esc(i.num)}</td><td>${esc(i.supplier || i.client)}</td><td>${esc(i.nif)}</td><td>${money(i.base)}</td><td>${money(i.iva_amount)}</td><td>${money(i.total)}</td><td>${esc(i.pay_date || i.pay_method || '')}</td><td><button class="light" data-edit="${i.id}">编辑</button> ${i.file_path ? `<button class="light" data-open="${i.file_path}">原件</button>` : ''}</td></tr>`).join('') : '<tr><td colspan="10">暂无发票。</td></tr>';
+}
+
+function renderPayments() {
+  const paid = invoices.filter(i => i.pay_date || i.pay_method);
+  const unpaid = invoices.filter(i => !i.pay_date && !i.pay_method);
+  const paidTotal = paid.reduce((s,i) => s + Number(i.total || 0), 0);
+  const unpaidTotal = unpaid.reduce((s,i) => s + Number(i.total || 0), 0);
+  $('paymentSummary').innerHTML = `<div class="card"><div class="label">已登记付款</div><div class="value">${paid.length}</div></div><div class="card"><div class="label">未登记付款</div><div class="value">${unpaid.length}</div></div><div class="card"><div class="label">已付款 Total</div><div class="value">${money(paidTotal)}</div></div><div class="card"><div class="label">未付款 Total</div><div class="value">${money(unpaidTotal)}</div></div>`;
+  $('paymentRows').innerHTML = invoices.map(i => `<tr><td>${esc(i.date)}</td><td>${esc(i.num)}</td><td>${esc(i.supplier || i.client)}</td><td>${money(i.total)}</td><td>${esc(i.pay_date || '')}</td><td>${esc(i.pay_method || '')}</td><td><button class="light" data-edit="${i.id}">登记</button></td></tr>`).join('');
+}
+
+function renderReport() {
+  const year = $('reportYear')?.value || String(new Date().getFullYear());
+  const q = Number($('reportQuarter')?.value || 1);
+  const start = (q - 1) * 3 + 1;
+  const end = q * 3;
+  const list = invoices.filter(i => {
+    const d = i.date || '';
+    const month = Number(d.slice(5,7));
+    return d.slice(0,4) === year && month >= start && month <= end;
+  });
+  const income = list.filter(isIncome);
+  const expense = list.filter(isExpense);
+  const inBase = income.reduce((s,i) => s + Number(i.base || 0), 0);
+  const inIva = income.reduce((s,i) => s + Number(i.iva_amount || 0), 0);
+  const outBase = expense.reduce((s,i) => s + Number(i.base || 0), 0);
+  const outIva = expense.reduce((s,i) => s + Number(i.iva_amount || 0), 0);
+  $('reportContent').innerHTML = `<table><tbody><tr><th></th><th>Base</th><th>IVA</th><th>Total</th></tr><tr><td>收入 IVA Repercutido</td><td>${money(inBase)}</td><td>${money(inIva)}</td><td>${money(inBase + inIva)}</td></tr><tr><td>支出 IVA Soportado</td><td>${money(outBase)}</td><td>${money(outIva)}</td><td>${money(outBase + outIva)}</td></tr><tr class="total-row"><td>净额</td><td></td><td>${money(inIva - outIva)}</td><td></td></tr></tbody></table>`;
+}
+
+function openNewInvoice(type='expense') {
+  openEdit('', { type, date:new Date().toISOString().slice(0,10), iva_rate:21 });
+}
+
+function recalcEditTotals() {
+  const base = parseMoney($('editBase').value);
+  const ivaRate = parseMoney($('editIvaRate').value);
+  const irpfRate = parseMoney($('editIrpfRate').value);
+  const ivaAmount = round2(base * ivaRate / 100);
+  const irpfAmount = round2(base * irpfRate / 100);
+  $('editIvaAmount').value = ivaAmount;
+  $('editIrpfAmount').value = irpfAmount;
+  $('editTotal').value = round2(base + ivaAmount - irpfAmount);
+}
+
+function openEdit(id, preset=null) {
+  const inv = preset || invoices.find(i => i.id === id);
+  if (!inv) return;
+  $('editTitle').textContent = id ? '编辑发票' : '新增发票';
+  $('deleteInvoiceBtn').classList.toggle('hide', !id);
+  $('editId').value = inv.id || '';
+  $('editType').value = inv.type || 'expense';
+  $('editNum').value = inv.num || '';
+  $('editDate').value = inv.date || '';
+  $('editDue').value = inv.due || '';
+  $('editPayDate').value = inv.pay_date || '';
+  $('editSupplier').value = inv.supplier || '';
+  $('editClient').value = inv.client || '';
+  $('editNif').value = inv.nif || '';
+  $('editBase').value = inv.base || 0;
+  $('editIvaRate').value = inv.iva_rate || 21;
+  $('editIvaAmount').value = inv.iva_amount || 0;
+  $('editIrpfRate').value = inv.irpf_rate || 0;
+  $('editIrpfAmount').value = inv.irpf_amount || 0;
+  $('editTotal').value = inv.total || 0;
+  $('editPayMethod').value = inv.pay_method || '';
+  $('editBankAmount').value = inv.bank_amount || 0;
+  $('editCashAmount').value = inv.cash_amount || 0;
+  $('editDescription').value = inv.description || '';
+  $('editNotes').value = inv.notes || '';
+  $('editModal').classList.remove('hide');
+}
+
+async function saveEdit() {
+  const id = $('editId').value;
+  const row = {
+    type:$('editType').value,
+    num:$('editNum').value.trim(),
+    date:emptyToNull($('editDate').value),
+    due:emptyToNull($('editDue').value),
+    pay_date:emptyToNull($('editPayDate').value),
+    supplier:$('editSupplier').value,
+    client:$('editClient').value,
+    nif:$('editNif').value,
+    base:parseMoney($('editBase').value),
+    iva_rate:parseMoney($('editIvaRate').value),
+    iva_amount:parseMoney($('editIvaAmount').value),
+    irpf_rate:parseMoney($('editIrpfRate').value),
+    irpf_amount:parseMoney($('editIrpfAmount').value),
+    total:parseMoney($('editTotal').value),
+    pay_method:$('editPayMethod').value,
+    bank_amount:parseMoney($('editBankAmount').value),
+    cash_amount:parseMoney($('editCashAmount').value),
+    description:$('editDescription').value,
+    notes:$('editNotes').value
+  };
+  if (!row.num || !row.date) return alert('请填写发票号和日期。');
+  const res = id
+    ? await sb.from('invoices_cloud').update(row).eq('id', id)
+    : await sb.from('invoices_cloud').insert(Object.assign({ user_id:user.id }, row));
+  if (res.error) return alert(res.error.message);
+  $('editModal').classList.add('hide');
+  await refreshAll();
+}
+
+async function deleteInvoice() {
+  const id = $('editId').value;
+  if (!confirm('确认删除这张发票？')) return;
+  const res = await sb.from('invoices_cloud').delete().eq('id', id);
+  if (res.error) return alert(res.error.message);
+  $('editModal').classList.add('hide');
+  await refreshAll();
+}
+
+function toCloudInvoice(inv) {
+  return {
+    user_id:user.id,
+    type:inv.type || 'expense',
+    num:String(inv.num || '').trim(),
+    date:emptyToNull(inv.date),
+    due:emptyToNull(inv.due),
+    supplier:inv.supplier || '',
+    client:inv.client || '',
+    nif:inv.nif || '',
+    description:inv.desc || inv.description || '',
+    base:Number(inv.base || 0),
+    iva_rate:Number(inv.ivaRate ?? inv.iva_rate ?? 21),
+    iva_amount:Number(inv.ivaAmt ?? inv.iva_amount ?? 0),
+    irpf_rate:Number(inv.irpfRate ?? inv.irpf_rate ?? 0),
+    irpf_amount:Number(inv.irpfAmt ?? inv.irpf_amount ?? 0),
+    total:Number(inv.total || 0),
+    pay_method:inv.payMethod || inv.pay_method || '',
+    pay_date:emptyToNull(inv.payDate || inv.pay_date),
+    bank_amount:Number(inv.bankAmt ?? inv.bank_amount ?? 0),
+    cash_amount:Number(inv.cashAmt ?? inv.cash_amount ?? 0),
+    notes:inv.notes || '',
+    file_path:inv.pdfFile || ''
+  };
+}
+
+function uniqueLocalInvoices(localInvoices) {
+  const seen = new Set(invoices.map(i => [i.num || '', i.date || '', i.supplier || i.client || '', Number(i.total || 0).toFixed(2)].join('|').toLowerCase()));
+  const rows = [];
+  localInvoices.forEach(inv => {
+    const row = toCloudInvoice(inv);
+    if (!row.num) return;
+    const key = [row.num || '', row.date || '', row.supplier || row.client || '', Number(row.total || 0).toFixed(2)].join('|').toLowerCase();
+    if (!seen.has(key)) { seen.add(key); rows.push(row); }
+  });
+  return rows;
+}
+
+async function importLocalInvoices() {
+  if (!user) return alert('请先登录。');
+  if (!confirm('将从本地数据库导入历史发票到云端资料库。已存在的相同发票会跳过。继续？')) return;
+  $('uploadStatus').textContent = '正在读取本地发票...';
+  const local = await fetch('/api/data').then(r => r.json());
+  const rows = uniqueLocalInvoices(local.invoices || []);
+  if (!rows.length) { $('uploadStatus').textContent = '没有需要导入的新发票。'; return; }
+  let imported = 0;
+  for (let i = 0; i < rows.length; i += 100) {
+    const chunk = rows.slice(i, i + 100);
+    $('uploadStatus').textContent = `正在导入 ${i + 1}-${i + chunk.length} / ${rows.length}`;
+    const res = await sb.from('invoices_cloud').insert(chunk);
+    if (res.error) throw res.error;
+    imported += chunk.length;
+  }
+  $('uploadStatus').textContent = `导入完成：新增 ${imported} 张。`;
+  await refreshAll();
+  showView('libraryView');
+}
+
+function exportRows(format) {
+  const rows = filteredInvoices();
+  if (format === 'json') {
+    downloadFile('facturas_cloud.json', JSON.stringify(rows, null, 2), 'application/json');
+    return;
+  }
+  const cols = ['date','due','type','num','supplier','client','nif','base','iva_rate','iva_amount','irpf_rate','irpf_amount','total','pay_date','pay_method','bank_amount','cash_amount','description','notes'];
+  const csv = [cols.join(',')].concat(rows.map(r => cols.map(c => `"${String(r[c] ?? '').replace(/"/g,'""')}"`).join(','))).join('\n');
+  downloadFile('facturas_cloud.csv', csv, 'text/csv;charset=utf-8');
+}
+
+function downloadFile(name, content, type) {
+  const blob = new Blob([content], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function printCloudReport() {
+  const html = $('reportContent').innerHTML;
+  if (!html) renderReport();
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>IVA申报</title><style>body{font-family:Arial,"Microsoft YaHei",sans-serif;padding:24px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ccc;padding:8px;text-align:left}.total-row{font-weight:800}</style></head><body><h2>季度 IVA 申报</h2>${$('reportContent').innerHTML}</body></html>`);
+  w.document.close();
+  w.print();
+}
+
+document.addEventListener('click', async (e) => {
+  try {
+    const tabBtn = e.target.closest('.tab');
+    if (tabBtn) showView(tabBtn.dataset.view);
+    const newTypeBtn = e.target.closest('[data-new-type]');
+    if (newTypeBtn) openNewInvoice(newTypeBtn.dataset.newType);
+    if (e.target.id === 'loginBtn') await login();
+    if (e.target.id === 'passwordLoginBtn') await passwordLogin();
+    if (e.target.id === 'signupBtn') await signup();
+    if (e.target.id === 'resetPasswordBtn') await resetPassword();
+    if (e.target.id === 'logoutBtn' || e.target.id === 'logoutBtn2') await sb.auth.signOut();
+    if (e.target.id === 'uploadBtn') uploadFiles().catch(err => $('uploadStatus').textContent = err.message);
+    if (e.target.id === 'importLocalBtn' || e.target.id === 'importLocalBtn2') importLocalInvoices().catch(err => $('uploadStatus').textContent = '导入失败: ' + err.message);
+    if (e.target.id === 'refreshBtn' || e.target.id === 'refreshBtn2') refreshAll().catch(err => alert(err.message));
+    if (e.target.id === 'clearFiltersBtn') { $('filterYear').value='all'; $('filterMonth').value='all'; $('filterType').value='all'; $('filterSearch').value=''; renderInvoices(); }
+    if (e.target.id === 'renderReportBtn') renderReport();
+    if (e.target.id === 'printReportBtn') printCloudReport();
+    if (e.target.id === 'exportCsvBtn') exportRows('csv');
+    if (e.target.id === 'exportJsonBtn') exportRows('json');
+    if (e.target.id === 'saveEditBtn') await saveEdit();
+    if (e.target.id === 'deleteInvoiceBtn') await deleteInvoice();
+    if (e.target.id === 'closeEditBtn') $('editModal').classList.add('hide');
+    if (e.target.dataset.confirm) await confirmUpload(e.target.dataset.confirm);
+    if (e.target.dataset.ai) await reparseUpload(e.target.dataset.ai);
+    if (e.target.dataset.ignore) await ignoreUpload(e.target.dataset.ignore);
+    if (e.target.dataset.open) await openFile(e.target.dataset.open);
+    if (e.target.dataset.edit) openEdit(e.target.dataset.edit);
+  } catch (err) {
+    if ($('loginStatus') && !user) $('loginStatus').textContent = err.message;
+    else alert(err.message);
+  }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'filterSearch') renderInvoices();
+  if (['editBase','editIvaRate','editIrpfRate'].includes(e.target.id)) recalcEditTotals();
+});
+document.addEventListener('change', (e) => {
+  if (['filterYear','filterMonth','filterType'].includes(e.target.id)) renderInvoices();
+  if (['reportYear','reportQuarter'].includes(e.target.id)) renderReport();
+});
+
+init().catch(e => { $('configNotice').classList.remove('hide'); $('configNotice').textContent = e.message; });
+</script>
+</body>
+</html>

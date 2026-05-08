@@ -3,3 +3,6 @@ facturas.db-shm
 facturas.db-wal
 backups/sqlite_*.json
 backups/index_before_*.html
+openai_key.txt
+ai_config.json
+.env
