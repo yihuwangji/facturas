@@ -1,7 +1,7 @@
 
     var SEED_DATA = {
-  "version": "2026-05-08-v1",
-  "nextId": 361,
+  "version": "2026-05-08-v2",
+  "nextId": 362,
   "invoices": [
     {
       "id": 1,
@@ -8626,6 +8626,29 @@
       "status": "pending",
       "notes": "SEPA DOMI RECIBOS - vencimiento 13/05/2026",
       "pdfFile": "https://yihuwangji.github.io/facturas/pdfs/COCA-COLA_2720828030.pdf"
+    },
+    {
+      "id": 361,
+      "type": "expense",
+      "num": "26050823",
+      "date": "2026-05-08",
+      "due": "2026-05-24",
+      "supplier": "JOYVI",
+      "nif": "B46150934",
+      "desc": "PIPES SALAES VALENCIANAS, CROMOS FIFA WORLD CUP 2026",
+      "base": 349.95,
+      "ivaRate": 21,
+      "ivaAmt": 63.02,
+      "irpfRate": 0,
+      "irpfAmt": 0,
+      "total": 412.97,
+      "payMethod": "",
+      "bankAmt": 0,
+      "cashAmt": 0,
+      "payDate": "",
+      "status": "pending",
+      "notes": "Visita - vencimiento 24/05/2026",
+      "pdfFile": ""
     }
   ],
   "suppliers": [
