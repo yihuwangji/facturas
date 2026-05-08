@@ -55,13 +55,11 @@ th{background:#f2f4f7;color:#475467;font-size:12px}.total-row{font-weight:800;ba
     <h2>登录</h2>
     <div class="grid">
       <div class="wide"><label>邮箱</label><input id="emailInput" type="email" autocomplete="username" placeholder="name@example.com"></div>
-      <div class="wide"><label>邮箱验证码</label><input id="otpInput" inputmode="numeric" autocomplete="one-time-code" placeholder="邮箱收到的 6 位数字"></div>
     </div>
     <div class="actions">
-      <button id="otpSendBtn" class="good">发送验证码</button>
-      <button id="otpVerifyBtn">验证码登录</button>
+      <button id="loginLinkBtn" class="good">发送登录链接</button>
     </div>
-    <p class="muted">第一次也直接用验证码登录。登录后浏览器会自动保持会话，一般不需要每天重新登录。</p>
+    <p class="muted">输入邮箱后点发送，去邮箱打开 Supabase 发来的链接即可登录。登录后浏览器会自动保持会话，一般不需要每天重新登录。</p>
     <p id="loginStatus" class="muted"></p>
   </section>
 
@@ -291,7 +289,7 @@ async function tryAutoLogin() {
   const res = await sb.auth.signInWithPassword({ email:saved.email, password:saved.password });
   if (res.error) {
     localStorage.removeItem(savedLoginKey);
-    $('loginStatus').textContent = '自动登录失败，请用邮箱验证码登录。';
+    $('loginStatus').textContent = '自动登录失败，请重新发送登录链接。';
     return;
   }
   user = res.data.user || null;
@@ -315,78 +313,25 @@ async function login() {
 async function sendOtpCode() {
   const email = $('emailInput').value.trim().toLowerCase();
   if (!email) return $('loginStatus').textContent = '请输入邮箱。';
-  $('loginStatus').textContent = '正在发送验证码...';
+  $('loginStatus').textContent = '正在发送登录链接...';
   const res = await sb.auth.signInWithOtp({
     email,
     options:{ shouldCreateUser:true, emailRedirectTo:location.href.split('#')[0] }
   });
   if (res.error) $('loginStatus').textContent = friendlyAuthError(res.error.message);
-  else $('loginStatus').textContent = '验证码已发送。请查看邮箱，把 6 位数字填到“邮箱验证码”。如果邮件里只有链接，也可以直接点链接登录。';
-}
-
-async function verifyOtpCode() {
-  const email = $('emailInput').value.trim().toLowerCase();
-  const token = $('otpInput').value.trim().replace(/\s+/g, '');
-  if (!email || !token) return $('loginStatus').textContent = '请输入邮箱和验证码。';
-  $('loginStatus').textContent = '正在验证...';
-  const res = await sb.auth.verifyOtp({ email, token, type:'email' });
-  $('loginStatus').textContent = res.error ? friendlyAuthError(res.error.message) : '验证码登录成功。';
-}
-
-async function anonymousLogin() {
-  $('loginStatus').textContent = '正在免密码进入...';
-  const res = await sb.auth.signInAnonymously();
-  if (res.error) {
-    $('loginStatus').textContent = '免密码进入暂未开启，请先用“发送验证码”。如要彻底免登录，需要在 Supabase Auth 开启 Anonymous sign-ins。';
-    return;
-  }
-  $('loginStatus').textContent = '已免密码进入。注意：这是本浏览器的独立资料库。';
-}
-
-async function passwordLogin() {
-  const email = $('emailInput').value.trim().toLowerCase();
-  const password = $('passwordInput')?.value || '';
-  if (!email || !password) return $('loginStatus').textContent = '请输入邮箱和密码。';
-  $('loginStatus').textContent = '正在登录...';
-  const res = await sb.auth.signInWithPassword({ email, password });
-  if (res.error) $('loginStatus').textContent = friendlyAuthError(res.error.message);
-  else {
-    rememberOrForgetLogin(email, password);
-    $('loginStatus').textContent = '登录成功。';
-  }
-}
-
-async function signup() {
-  const email = $('emailInput').value.trim().toLowerCase();
-  const password = $('passwordInput').value;
-  if (!email || password.length < 6) return $('loginStatus').textContent = '请输入邮箱和至少 6 位密码。';
-  $('loginStatus').textContent = '正在注册...';
-  const res = await sb.auth.signUp({ email, password, options:{ emailRedirectTo: location.href.split('#')[0] } });
-  if (res.error) $('loginStatus').textContent = friendlyAuthError(res.error.message);
-  else {
-    if (res.data.session) rememberOrForgetLogin(email, password);
-    $('loginStatus').textContent = res.data.session ? '注册并登录成功。' : '注册成功。如果需要邮箱确认，请打开邮件确认一次。';
-  }
-}
-
-async function resetPassword() {
-  const email = $('emailInput').value.trim().toLowerCase();
-  if (!email) return $('loginStatus').textContent = '请输入邮箱。';
-  $('loginStatus').textContent = '正在发送设置密码邮件...';
-  const res = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0] });
-  $('loginStatus').textContent = res.error ? friendlyAuthError(res.error.message) : '已发送设置/重置密码邮件，请打开邮箱。';
+  else $('loginStatus').textContent = '登录链接已发送，请打开邮箱并点击链接。';
 }
 
 async function logoutApp() {
   await sb.auth.signOut();
   loadSavedLogin();
-  $('loginStatus').textContent = '已退出登录。下次用邮箱验证码进入。';
+  $('loginStatus').textContent = '已退出登录。下次用登录链接进入。';
 }
 
 function friendlyAuthError(message) {
-  if (/invalid login credentials/i.test(message)) return '验证码不正确或已过期，请重新发送验证码。';
+  if (/invalid login credentials/i.test(message)) return '登录链接无效或已过期，请重新发送登录链接。';
   if (/email not confirmed/i.test(message)) return '邮箱还没有确认，请先打开 Supabase 发来的确认邮件。';
-  if (/already registered/i.test(message)) return '这个邮箱已经可以使用，请直接发送验证码登录。';
+  if (/already registered/i.test(message)) return '这个邮箱已经可以使用，请直接发送登录链接。';
   return message;
 }
 
@@ -922,8 +867,7 @@ document.addEventListener('click', async (e) => {
     if (tabBtn) showView(tabBtn.dataset.view);
     const newTypeBtn = e.target.closest('[data-new-type]');
     if (newTypeBtn) openNewInvoice(newTypeBtn.dataset.newType);
-    if (e.target.id === 'otpSendBtn') await sendOtpCode();
-    if (e.target.id === 'otpVerifyBtn') await verifyOtpCode();
+    if (e.target.id === 'loginLinkBtn') await sendOtpCode();
     if (e.target.id === 'logoutBtn' || e.target.id === 'logoutBtn2') await logoutApp();
     if (e.target.id === 'uploadBtn') uploadFiles().catch(err => $('uploadStatus').textContent = err.message);
     if (e.target.id === 'importLocalBtn' || e.target.id === 'importLocalBtn2') importLocalInvoices().catch(err => $('uploadStatus').textContent = '导入失败: ' + err.message);
