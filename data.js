@@ -1,6 +1,6 @@
 
     var SEED_DATA = {
-  "version": "2026-05-08-v2",
+  "version": "2026-05-08-v3",
   "nextId": 362,
   "invoices": [
     {
@@ -8642,12 +8642,12 @@
       "irpfRate": 0,
       "irpfAmt": 0,
       "total": 412.97,
-      "payMethod": "",
-      "bankAmt": 0,
+      "payMethod": "bank",
+      "bankAmt": 412.97,
       "cashAmt": 0,
-      "payDate": "",
-      "status": "pending",
-      "notes": "Visita - vencimiento 24/05/2026",
+      "payDate": "2026-05-08",
+      "status": "paid",
+      "notes": "Visita - pagado 08/05/2026",
       "pdfFile": ""
     }
   ],
