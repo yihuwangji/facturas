@@ -56,8 +56,8 @@ th{background:#f2f4f7;color:#475467;font-size:12px}.total-row{font-weight:800;ba
   <section id="loginPanel" class="panel">
     <h2>登录</h2>
     <div class="grid">
-      <div class="wide"><label>邮箱</label><input id="emailInput" type="email" placeholder="name@example.com"></div>
-      <div class="wide"><label>密码</label><input id="passwordInput" type="password" placeholder="至少 6 位"></div>
+      <div class="wide"><label>邮箱</label><input id="emailInput" type="email" autocomplete="username" placeholder="name@example.com"></div>
+      <div class="wide"><label>密码</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="至少 6 位"></div>
     </div>
     <label class="remember"><input id="rememberLogin" type="checkbox"> 记住登录，下次自动进入</label>
     <p class="muted">建议只在自己的电脑使用。本机已经会尽量保持登录状态，勾选后会在此浏览器保存登录信息。</p>
@@ -66,6 +66,7 @@ th{background:#f2f4f7;color:#475467;font-size:12px}.total-row{font-weight:800;ba
       <button id="signupBtn" class="good">第一次注册</button>
       <button id="resetPasswordBtn" class="secondary">设置/重置密码</button>
       <button id="loginBtn" class="light">发送登录链接</button>
+      <button id="clearSavedLoginBtn" class="light">清除记住密码</button>
     </div>
     <p id="loginStatus" class="muted"></p>
   </section>
@@ -280,16 +281,26 @@ function rememberOrForgetLogin(email, password) {
   else localStorage.removeItem(savedLoginKey);
 }
 
+function updateSavedLoginFromForm() {
+  const email = $('emailInput').value.trim().toLowerCase();
+  const password = $('passwordInput').value;
+  rememberOrForgetLogin(email, password);
+}
+
+function clearSavedLogin() {
+  localStorage.removeItem(savedLoginKey);
+  $('rememberLogin').checked = false;
+  $('passwordInput').value = '';
+  $('loginStatus').textContent = '已清除本机记住的密码。';
+}
+
 async function tryAutoLogin() {
   const saved = decodeSavedLogin(localStorage.getItem(savedLoginKey) || '');
   if (!saved?.email || !saved?.password) return;
   $('loginStatus').textContent = '正在自动登录...';
   const res = await sb.auth.signInWithPassword({ email:saved.email, password:saved.password });
   if (res.error) {
-    $('loginStatus').textContent = '自动登录失败，请重新输入密码。';
-    localStorage.removeItem(savedLoginKey);
-    $('rememberLogin').checked = false;
-    $('passwordInput').value = '';
+    $('loginStatus').textContent = '自动登录失败，请点“密码登录”再试，或点“设置/重置密码”。';
     return;
   }
   user = res.data.user || null;
@@ -314,6 +325,7 @@ async function passwordLogin() {
   const email = $('emailInput').value.trim().toLowerCase();
   const password = $('passwordInput').value;
   if (!email || !password) return $('loginStatus').textContent = '请输入邮箱和密码。';
+  if ($('rememberLogin').checked) updateSavedLoginFromForm();
   $('loginStatus').textContent = '正在登录...';
   const res = await sb.auth.signInWithPassword({ email, password });
   if (res.error) $('loginStatus').textContent = friendlyAuthError(res.error.message);
@@ -345,10 +357,9 @@ async function resetPassword() {
 }
 
 async function logoutApp() {
-  localStorage.removeItem(savedLoginKey);
-  if ($('rememberLogin')) $('rememberLogin').checked = false;
-  if ($('passwordInput')) $('passwordInput').value = '';
   await sb.auth.signOut();
+  loadSavedLogin();
+  $('loginStatus').textContent = '已退出登录。记住的密码仍保留在本机。';
 }
 
 function friendlyAuthError(message) {
@@ -894,6 +905,7 @@ document.addEventListener('click', async (e) => {
     if (e.target.id === 'passwordLoginBtn') await passwordLogin();
     if (e.target.id === 'signupBtn') await signup();
     if (e.target.id === 'resetPasswordBtn') await resetPassword();
+    if (e.target.id === 'clearSavedLoginBtn') clearSavedLogin();
     if (e.target.id === 'logoutBtn' || e.target.id === 'logoutBtn2') await logoutApp();
     if (e.target.id === 'uploadBtn') uploadFiles().catch(err => $('uploadStatus').textContent = err.message);
     if (e.target.id === 'importLocalBtn' || e.target.id === 'importLocalBtn2') importLocalInvoices().catch(err => $('uploadStatus').textContent = '导入失败: ' + err.message);
@@ -920,10 +932,12 @@ document.addEventListener('click', async (e) => {
 document.addEventListener('input', (e) => {
   if (e.target.id === 'filterSearch') renderInvoices();
   if (['editBase','editIvaRate','editIrpfRate'].includes(e.target.id)) recalcEditTotals();
+  if (['emailInput','passwordInput'].includes(e.target.id) && $('rememberLogin').checked) updateSavedLoginFromForm();
 });
 document.addEventListener('change', (e) => {
   if (['filterYear','filterMonth','filterType'].includes(e.target.id)) renderInvoices();
   if (['reportYear','reportQuarter'].includes(e.target.id)) renderReport();
+  if (e.target.id === 'rememberLogin') updateSavedLoginFromForm();
 });
 
 init().catch(e => { $('configNotice').classList.remove('hide'); $('configNotice').textContent = e.message; });
