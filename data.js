@@ -8671,7 +8671,7 @@
       "payDate": "",
       "status": "pending",
       "notes": "ABONO rotura - vencimiento 03/06/2026",
-      "pdfFile": ""
+      "pdfFile": "PRINCESALISIMO_9206162.pdf"
     }
   ],
   "suppliers": [
