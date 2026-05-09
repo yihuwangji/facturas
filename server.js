@@ -257,7 +257,9 @@ function normalizeAiInvoice(data, fileName) {
   });
   out.type = ['expense', 'income', 'abono', 'sale'].includes(out.type) ? out.type : 'expense';
   if (!out.num) out.num = path.basename(fileName || 'invoice', path.extname(fileName || ''));
-  if (!out.iva_rate && out.base && out.iva_amount) out.iva_rate = Math.round((out.iva_amount / out.base) * 10000) / 100;
+  if ((!out.iva_rate || out.iva_rate <= 1) && out.base && out.iva_amount) {
+    out.iva_rate = Math.round((out.iva_amount / out.base) * 10000) / 100;
+  }
   if (!out.iva_rate) out.iva_rate = 21;
   if (!out.iva_amount && out.base) out.iva_amount = Math.round(out.base * out.iva_rate) / 100;
   if (!out.total && out.base) out.total = Math.round((out.base + out.iva_amount - out.irpf_amount) * 100) / 100;

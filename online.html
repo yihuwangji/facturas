@@ -565,7 +565,8 @@ async function aiParseFile(file, ocrText, fallback) {
     $('uploadStatus').textContent = 'AI识别完成，请确认。';
     return Object.assign({}, fallback, data.parsed, { notes:data.parsed.notes || 'AI自动识别，请人工核对' });
   } catch (err) {
-    $('uploadStatus').textContent = 'AI不可用，已使用普通OCR: ' + err.message;
+    const remoteHint = location.hostname.includes('github.io') ? '远程网页没有本地AI后端；需要AI识别请打开 http://localhost:8765/online.html。' : '';
+    $('uploadStatus').textContent = 'AI不可用，已使用普通OCR: ' + (remoteHint || err.message);
     return fallback;
   }
 }
