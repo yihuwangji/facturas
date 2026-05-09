@@ -337,10 +337,15 @@ async function parseInvoiceWithChatCompletions(payload, ai, base64, ocrText) {
   const fileName = payload.fileName || 'invoice';
   const mimeType = payload.mimeType || 'application/octet-stream';
   const isPdf = mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf');
+  if (isPdf) {
+    throw new Error('当前免费AI接口不直接支持PDF。请在网页选择PDF，页面会先转成图片再识别；如果仍失败，请把PDF第一页截图成JPG/PNG再上传。');
+  }
   const prompt =
-    'Extract this Spanish invoice into strict JSON with these exact keys: ' +
+    'Look at the attached image and extract only clearly visible Spanish invoice fields into strict JSON with these exact keys: ' +
     Object.keys(invoiceJsonSchema().properties).join(', ') + '. ' +
-    'Use numbers for amounts, ISO date YYYY-MM-DD or empty string, and needs_review=true if uncertain. ' +
+    'Never invent company names, invoice numbers, dates, tax ids, or amounts. ' +
+    'If the image is blank, unreadable, not an invoice, or a field is uncertain, use empty string for text, 0 for numbers, confidence 0, and needs_review true. ' +
+    'Use numbers for amounts and ISO date YYYY-MM-DD or empty string. Return JSON only. ' +
     `Filename: ${fileName}\nOCR text, may contain errors:\n${ocrText}`;
 
   const userContent = [{ type: 'text', text: prompt }];
@@ -360,7 +365,7 @@ async function parseInvoiceWithChatCompletions(payload, ai, base64, ocrText) {
     body: JSON.stringify({
       model: ai.model,
       messages: [
-        { role: 'system', content: 'You extract invoice data. Return valid JSON only, no markdown.' },
+        { role: 'system', content: 'You extract invoice data from visible evidence only. Return valid JSON only, no markdown. Do not guess or fabricate.' },
         { role: 'user', content: userContent }
       ],
       response_format: { type: 'json_object' },

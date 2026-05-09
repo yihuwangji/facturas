@@ -393,8 +393,8 @@ async function parseAiFile() {
   $('aiParseBtn').disabled = true;
   $('aiParseBtn').textContent = '识别中...';
   try {
-    const base64 = await fileToBase64(file);
-    const result = await api('/api/ai-parse', { method: 'POST', body: JSON.stringify({ fileName: file.name, mimeType: file.type || 'application/octet-stream', base64 }) });
+    const aiFile = await prepareAiFile(file);
+    const result = await api('/api/ai-parse', { method: 'POST', body: JSON.stringify(aiFile) });
     const draft = { ...makeBlank($('aiType').value), ...result.parsed, id: state.nextId, pdfFile: file.name, notes: `AI识别草稿，文件：${file.name}` };
     $('aiResult').classList.remove('hide');
     $('aiResult').innerHTML = `<div class="item-head"><div><b>${escapeHtml(draft.supplier || draft.client || draft.num || file.name)}</b><div class="muted">${escapeHtml(draft.date || '')} · ${money(draft.total)} · 置信度 ${Math.round(num(draft.confidence) * 100)}%</div></div></div><pre class="raw">${escapeHtml(JSON.stringify(draft, null, 2))}</pre><div class="actions"><button class="good" id="useAiDraftBtn">打开草稿确认</button></div>`;
@@ -404,6 +404,44 @@ async function parseAiFile() {
   } finally {
     $('aiParseBtn').disabled = false;
     $('aiParseBtn').textContent = '识别并生成草稿';
+  }
+}
+
+async function prepareAiFile(file) {
+  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+  if (!isPdf) {
+    return {
+      fileName: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      base64: await fileToBase64(file)
+    };
+  }
+  const pdfjsLib = await loadPdfJs();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+  const bytes = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 2.2 });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.floor(viewport.width);
+  canvas.height = Math.floor(viewport.height);
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  const dataUrl = canvas.toDataURL('image/png');
+  return {
+    fileName: `${file.name}.page1.png`,
+    originalFileName: file.name,
+    mimeType: 'image/png',
+    base64: dataUrl.split(',')[1] || ''
+  };
+}
+
+async function loadPdfJs() {
+  if (window.__pdfjsLib) return window.__pdfjsLib;
+  try {
+    window.__pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+    return window.__pdfjsLib;
+  } catch (err) {
+    throw new Error('PDF组件加载失败，请检查网络后重试，或先把PDF截图成JPG/PNG再上传。');
   }
 }
 
