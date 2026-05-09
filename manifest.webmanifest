@@ -1,7 +1,7 @@
 {
-  "name": "FACTURAS Cloud Invoices",
+  "name": "FACTURAS Local Invoices",
   "short_name": "FACTURAS",
-  "description": "Share PDF and image invoices into FACTURAS.",
+  "description": "Save and manage local invoice records.",
   "start_url": "online.html",
   "scope": "./",
   "display": "standalone",
@@ -14,24 +14,5 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ],
-  "share_target": {
-    "action": "share-target",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url",
-      "files": [
-        {
-          "name": "files",
-          "accept": [
-            "application/pdf",
-            "image/*"
-          ]
-        }
-      ]
-    }
-  }
+  ]
 }
