@@ -231,6 +231,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&
 const round2 = (n) => Math.round(Number(n || 0) * 100) / 100;
 const money = (n) => '€' + Number(n || 0).toFixed(2);
 const emptyToNull = (value) => value && String(value).trim() ? value : null;
+const authRedirectUrl = () => cfg.APP_URL || `${location.origin}${location.pathname}`;
 
 function initClient() {
   if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY || !window.supabase) {
@@ -384,7 +385,7 @@ async function login() {
   const email = $('emailInput').value.trim().toLowerCase();
   if (!email) return $('loginStatus').textContent = '请输入邮箱。';
   $('loginStatus').textContent = '正在发送登录链接...';
-  const res = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href.split('#')[0] } });
+  const res = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: authRedirectUrl() } });
   $('loginStatus').textContent = res.error ? friendlyAuthError(res.error.message) : '登录链接已发送，请打开邮箱。';
 }
 
@@ -401,7 +402,7 @@ async function sendOtpCode() {
   $('loginStatus').textContent = '正在发送登录链接...';
   const res = await sb.auth.signInWithOtp({
     email,
-    options:{ shouldCreateUser:true, emailRedirectTo:location.href.split('#')[0] }
+    options:{ shouldCreateUser:true, emailRedirectTo:authRedirectUrl() }
   });
   if (res.error) {
     if (/rate limit|too many|over.*limit/i.test(res.error.message)) setLoginCooldown(10);
