@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人形计算机</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  h1 {
+    color: #0ff;
+    font-size: 1.4rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 24px;
+    text-shadow: 0 0 16px #0ff, 0 0 40px #0af;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  #scene {
+    position: relative;
+    width: 320px;
+    height: 520px;
+  }
+
+  #figure {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 480px;
+    transform-origin: center bottom;
+    transition: filter 0.3s;
+  }
+
+  #figure.wiggle {
+    animation: wiggle 0.6s ease-in-out;
+  }
+
+  @keyframes wiggle {
+    0%   { transform: translateX(-50%) rotate(0deg); }
+    15%  { transform: translateX(-50%) rotate(6deg) skewX(4deg); }
+    30%  { transform: translateX(-50%) rotate(-6deg) skewX(-4deg); }
+    45%  { transform: translateX(-50%) rotate(5deg) skewX(3deg); }
+    60%  { transform: translateX(-50%) rotate(-4deg) skewX(-2deg); }
+    75%  { transform: translateX(-50%) rotate(2deg); }
+    90%  { transform: translateX(-50%) rotate(-1deg); }
+    100% { transform: translateX(-50%) rotate(0deg); }
+  }
+
+  /* Body digits overlaid on figure */
+  #digits-overlay {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 480px;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .body-digit {
+    position: absolute;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #0ff;
+    text-shadow: 0 0 8px #0ff, 0 0 16px #0af;
+    font-size: 13px;
+    animation: float 3s ease-in-out infinite;
+    mix-blend-mode: screen;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); opacity: 0.9; }
+    50%       { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* Flying numbers from mouth */
+  .flying-digit {
+    position: absolute;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 18px;
+    color: #ff0;
+    text-shadow: 0 0 10px #ff0, 0 0 24px #fa0;
+    pointer-events: none;
+    animation: fly-out var(--dur) cubic-bezier(0.2, 0.8, 0.5, 1) forwards;
+    z-index: 20;
+  }
+
+  @keyframes fly-out {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0.3); opacity: 0; }
+  }
+
+  #btn {
+    margin-top: 24px;
+    padding: 14px 44px;
+    background: transparent;
+    border: 2px solid #0ff;
+    color: #0ff;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 0 14px #0ff4, inset 0 0 14px #0ff1;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 10;
+  }
+
+  #btn:hover {
+    background: #0ff2;
+    box-shadow: 0 0 28px #0ff8, inset 0 0 20px #0ff3;
+  }
+
+  #btn:active {
+    transform: scale(0.96);
+  }
+
+  #btn.pressed {
+    background: #ff02;
+    border-color: #ff0;
+    color: #ff0;
+    box-shadow: 0 0 28px #ff08, inset 0 0 20px #ff03;
+  }
+
+  #counter {
+    margin-top: 14px;
+    color: #0f8;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    opacity: 0.7;
+  }
+
+  /* Grid scan line overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.12) 3px,
+      rgba(0,0,0,0.12) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<h1>人形计算机</h1>
+
+<div id="scene">
+  <!-- SVG female figure -->
+  <svg id="figure" viewBox="0 0 220 480" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="skinGrad" cx="50%" cy="50%" r="60%">
+        <stop offset="0%" stop-color="#2a1a2e"/>
+        <stop offset="100%" stop-color="#0d0d1a"/>
+      </radialGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1a0a2e"/>
+        <stop offset="50%" stop-color="#0a0a1e"/>
+        <stop offset="100%" stop-color="#1a0a2e"/>
+      </linearGradient>
+      <linearGradient id="glowLine" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0ff" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#0af" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Hair -->
+    <ellipse cx="110" cy="42" rx="42" ry="8" fill="#1a0533" opacity="0.9"/>
+    <path d="M68,42 Q62,80 66,110 Q70,85 75,75" fill="#1a0533"/>
+    <path d="M152,42 Q158,80 154,110 Q150,85 145,75" fill="#1a0533"/>
+    <ellipse cx="110" cy="36" rx="38" ry="34" fill="#220b44"/>
+    <!-- hair streaks -->
+    <path d="M80,12 Q75,30 72,60" stroke="#3a1566" stroke-width="3" fill="none" opacity="0.6"/>
+    <path d="M110,8 Q108,28 106,60" stroke="#3a1566" stroke-width="3" fill="none" opacity="0.6"/>
+    <path d="M140,12 Q145,30 148,60" stroke="#3a1566" stroke-width="3" fill="none" opacity="0.6"/>
+
+    <!-- Head -->
+    <ellipse cx="110" cy="70" rx="36" ry="40" fill="url(#skinGrad)" stroke="#0ff" stroke-width="1" opacity="0.9"/>
+    <!-- Face glow -->
+    <ellipse cx="110" cy="68" rx="30" ry="32" fill="none" stroke="#0ff" stroke-width="0.5" opacity="0.3"/>
+
+    <!-- Eyes -->
+    <ellipse cx="97" cy="64" rx="7" ry="5" fill="#000"/>
+    <ellipse cx="123" cy="64" rx="7" ry="5" fill="#000"/>
+    <ellipse cx="97" cy="64" rx="5" ry="3.5" fill="#0ff" opacity="0.9" filter="url(#glow)"/>
+    <ellipse cx="123" cy="64" rx="5" ry="3.5" fill="#0ff" opacity="0.9" filter="url(#glow)"/>
+    <circle cx="97" cy="64" r="2" fill="#fff"/>
+    <circle cx="123" cy="64" r="2" fill="#fff"/>
+    <!-- Eye shine -->
+    <circle cx="100" cy="62" r="1" fill="#fff" opacity="0.8"/>
+    <circle cx="126" cy="62" r="1" fill="#fff" opacity="0.8"/>
+
+    <!-- Eyebrows -->
+    <path d="M90,57 Q97,54 104,57" stroke="#0af" stroke-width="2" fill="none" opacity="0.8"/>
+    <path d="M116,57 Q123,54 130,57" stroke="#0af" stroke-width="2" fill="none" opacity="0.8"/>
+
+    <!-- Nose -->
+    <path d="M107,72 Q105,80 108,83 Q110,84 112,83 Q115,80 113,72" stroke="#0af" stroke-width="1" fill="none" opacity="0.5"/>
+
+    <!-- MOUTH — numbers fly from here -->
+    <g id="mouth-group">
+      <path id="mouth" d="M99,91 Q110,100 121,91" stroke="#f0a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
+      <path d="M99,91 Q110,97 121,91" stroke="#f08" stroke-width="1" fill="#2a0515" opacity="0.6"/>
+    </g>
+
+    <!-- Neck -->
+    <rect x="102" y="108" width="16" height="22" rx="4" fill="url(#skinGrad)" stroke="#0ff" stroke-width="0.5" opacity="0.8"/>
+
+    <!-- Shoulders -->
+    <path d="M60,130 Q80,118 110,120 Q140,118 160,130 L158,145 Q140,136 110,138 Q80,136 62,145 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1"/>
+
+    <!-- Upper body / torso -->
+    <path d="M62,145 Q68,220 72,270 Q88,280 110,282 Q132,280 148,270 Q152,220 158,145 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1.2"/>
+
+    <!-- Chest highlight lines (circuit) -->
+    <line x1="90" y1="152" x2="130" y2="152" stroke="#0ff" stroke-width="0.6" opacity="0.4"/>
+    <line x1="85" y1="165" x2="135" y2="165" stroke="#0ff" stroke-width="0.6" opacity="0.3"/>
+    <circle cx="110" cy="158" r="8" fill="none" stroke="#0ff" stroke-width="0.8" opacity="0.5"/>
+    <circle cx="110" cy="158" r="4" fill="#0ff" opacity="0.2"/>
+
+    <!-- Waist curve -->
+    <path d="M72,270 Q76,295 80,310 Q110,318 140,310 Q144,295 148,270 Q132,280 110,282 Q88,280 72,270 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1"/>
+
+    <!-- Hips -->
+    <path d="M80,310 Q62,318 58,340 L70,340 Q76,328 80,320" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="0.8"/>
+    <path d="M140,310 Q158,318 162,340 L150,340 Q144,328 140,320" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="0.8"/>
+    <path d="M58,340 Q65,365 72,380 L148,380 Q155,365 162,340 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1"/>
+
+    <!-- Left arm -->
+    <path d="M62,145 Q40,170 34,220 Q30,240 36,255 Q44,268 52,260 Q58,250 54,235 Q52,210 65,180 L68,160 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1"/>
+    <!-- Left hand -->
+    <ellipse cx="44" cy="265" rx="10" ry="14" fill="url(#skinGrad)" stroke="#0ff" stroke-width="0.8"/>
+
+    <!-- Right arm -->
+    <path d="M158,145 Q180,170 186,220 Q190,240 184,255 Q176,268 168,260 Q162,250 166,235 Q168,210 155,180 L152,160 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1"/>
+    <!-- Right hand -->
+    <ellipse cx="176" cy="265" rx="10" ry="14" fill="url(#skinGrad)" stroke="#0ff" stroke-width="0.8"/>
+
+    <!-- Left leg -->
+    <path d="M80,375 Q76,400 74,430 Q72,455 76,475 Q84,480 90,475 Q96,465 94,445 Q94,420 96,395 L100,375 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1"/>
+    <!-- Left foot -->
+    <ellipse cx="82" cy="476" rx="12" ry="6" fill="url(#skinGrad)" stroke="#0ff" stroke-width="0.8"/>
+
+    <!-- Right leg -->
+    <path d="M140,375 Q144,400 146,430 Q148,455 144,475 Q136,480 130,475 Q124,465 126,445 Q126,420 124,395 L120,375 Z" fill="url(#bodyGrad)" stroke="#0ff" stroke-width="1"/>
+    <!-- Right foot -->
+    <ellipse cx="138" cy="476" rx="12" ry="6" fill="url(#skinGrad)" stroke="#0ff" stroke-width="0.8"/>
+
+    <!-- Circuit lines on body -->
+    <line x1="95" y1="185" x2="125" y2="185" stroke="#0f8" stroke-width="0.6" opacity="0.5"/>
+    <line x1="95" y1="185" x2="95" y2="200" stroke="#0f8" stroke-width="0.6" opacity="0.5"/>
+    <line x1="125" y1="185" x2="125" y2="200" stroke="#0f8" stroke-width="0.6" opacity="0.5"/>
+    <circle cx="95" cy="200" r="2" fill="#0f8" opacity="0.6"/>
+    <circle cx="125" cy="200" r="2" fill="#0f8" opacity="0.6"/>
+    <line x1="95" y1="200" x2="125" y2="200" stroke="#0f8" stroke-width="0.6" opacity="0.5"/>
+    <line x1="100" y1="215" x2="120" y2="215" stroke="#0ff" stroke-width="0.5" opacity="0.4"/>
+    <line x1="98" y1="230" x2="122" y2="230" stroke="#0ff" stroke-width="0.5" opacity="0.4"/>
+
+    <!-- Belly button -->
+    <circle cx="110" cy="250" r="3" fill="none" stroke="#0ff" stroke-width="0.8" opacity="0.5"/>
+  </svg>
+
+  <!-- Digits overlaid on body -->
+  <div id="digits-overlay"></div>
+</div>
+
+<button id="btn" onclick="activate()">[ 按 下 ]</button>
+<div id="counter">已激活: <span id="count">0</span> 次</div>
+
+<script>
+const figure = document.getElementById('figure');
+const overlay = document.getElementById('digits-overlay');
+const btn = document.getElementById('btn');
+const countEl = document.getElementById('count');
+const scene = document.getElementById('scene');
+
+let pressCount = 0;
+
+// Digit positions scattered across the body silhouette
+// [x%, y%] relative to the 220x480 overlay
+const digitPositions = [
+  // head area
+  [42,8],[48,10],[55,8],[62,10],[38,12],
+  // neck
+  [46,22],[54,22],
+  // shoulders
+  [20,28],[30,26],[70,26],[80,28],
+  // chest
+  [35,35],[45,33],[55,33],[65,35],[42,40],[58,40],
+  [38,45],[52,45],[62,43],[48,50],[55,50],
+  // belly
+  [40,55],[50,52],[60,55],[44,60],[56,60],
+  [38,65],[52,63],[62,65],[46,70],[56,70],
+  // arms
+  [12,38],[10,45],[8,52],[14,58],[16,42],
+  [88,38],[90,45],[92,52],[86,58],[84,42],
+  // hips/skirt
+  [30,76],[42,73],[58,73],[70,76],
+  [26,80],[38,78],[62,78],[74,80],
+  // legs
+  [32,85],[34,90],[32,95],[34,100],
+  [62,85],[64,90],[62,95],[64,100],
+];
+
+function randDigit() {
+  return Math.floor(Math.random() * 10).toString();
+}
+
+function randHex() {
+  const chars = '0123456789ABCDEF';
+  return chars[Math.floor(Math.random() * chars.length)];
+}
+
+// Create static body digits
+function createBodyDigits() {
+  overlay.innerHTML = '';
+  digitPositions.forEach(([xp, yp], i) => {
+    const el = document.createElement('span');
+    el.className = 'body-digit';
+    el.textContent = randHex();
+    el.style.left = (xp / 100 * 220) + 'px';
+    el.style.top = (yp / 100 * 480) + 'px';
+    el.style.animationDelay = (i * 0.07) + 's';
+    el.style.animationDuration = (2.5 + Math.random() * 1.5) + 's';
+    const hue = Math.random() < 0.7 ? '180deg' : (Math.random() < 0.5 ? '120deg' : '280deg');
+    el.style.filter = `hue-rotate(${hue})`;
+    el.style.fontSize = (10 + Math.random() * 6) + 'px';
+    overlay.appendChild(el);
+  });
+}
+
+// Refresh digit values periodically
+function refreshDigits() {
+  const digits = overlay.querySelectorAll('.body-digit');
+  digits.forEach(el => {
+    if (Math.random() < 0.4) el.textContent = randHex();
+  });
+}
+
+// Spawn flying digits from mouth area
+function spawnFlyingDigits() {
+  // Mouth position in scene coords (~110, 91) in the SVG which maps to:
+  // SVG is 220w x 480h, centered in 320w x 520h scene
+  // offset left = (320-220)/2 = 50
+  const mouthX = 50 + 110; // ~160px from left of scene
+  const mouthY = 91;       // ~91px from top of scene (figure starts at top:0)
+
+  const count = 8 + Math.floor(Math.random() * 8);
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const el = document.createElement('span');
+      el.className = 'flying-digit';
+
+      const val = Math.random() < 0.6 ? randDigit() : randHex();
+      el.textContent = val;
+
+      const angle = (-60 - Math.random() * 120) * Math.PI / 180; // upward spread
+      const dist = 80 + Math.random() * 140;
+      const tx = Math.cos(angle) * dist;
+      const ty = Math.sin(angle) * dist;
+      const dur = (0.5 + Math.random() * 0.7).toFixed(2);
+
+      el.style.setProperty('--tx', tx + 'px');
+      el.style.setProperty('--ty', ty + 'px');
+      el.style.setProperty('--dur', dur + 's');
+      el.style.left = mouthX + 'px';
+      el.style.top = mouthY + 'px';
+
+      const colors = ['#ff0','#fa0','#f80','#ff4','#0ff','#0f8'];
+      el.style.color = colors[Math.floor(Math.random() * colors.length)];
+      el.style.fontSize = (14 + Math.random() * 14) + 'px';
+
+      scene.appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000 + 100);
+    }, i * 45);
+  }
+}
+
+function activate() {
+  pressCount++;
+  countEl.textContent = pressCount;
+
+  // Wiggle
+  figure.classList.remove('wiggle');
+  void figure.offsetWidth; // reflow
+  figure.classList.add('wiggle');
+  figure.addEventListener('animationend', () => figure.classList.remove('wiggle'), { once: true });
+
+  // Fly digits from mouth
+  spawnFlyingDigits();
+
+  // Scramble body digits
+  const digits = overlay.querySelectorAll('.body-digit');
+  digits.forEach(el => {
+    el.textContent = randHex();
+  });
+
+  // Button flash
+  btn.classList.add('pressed');
+  setTimeout(() => btn.classList.remove('pressed'), 400);
+}
+
+// Init
+createBodyDigits();
+setInterval(refreshDigits, 800);
+</script>
+</body>
+</html>
